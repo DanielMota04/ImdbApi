@@ -17,9 +17,6 @@
 
   <ItemGroup>
     <Folder Include="Controllers\" />
-    <Folder Include="DTOs\Movie\" />
-    <Folder Include="DTOs\User\" />
-    <Folder Include="Repository\" />
     <Folder Include="Services\" />
     <Folder Include="Mapper\" />
   </ItemGroup>
