@@ -1,8 +1,8 @@
 ﻿using ImdbApi.Data;
 using ImdbApi.DTOs.Request;
 using ImdbApi.DTOs.Response;
+using ImdbApi.Interfaces;
 using ImdbApi.Mappers;
-using ImdbApi.Repository;
 using Microsoft.EntityFrameworkCore;
 
 namespace ImdbApi.Services

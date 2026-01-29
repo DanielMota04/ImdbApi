@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ImdbApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260128133224_Initial")]
-    partial class Initial
+    [Migration("20260129124436_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

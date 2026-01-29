@@ -1,7 +1,6 @@
-using ImdbApi.Controllers;
 using ImdbApi.Data;
+using ImdbApi.Interfaces;
 using ImdbApi.Mappers;
-using ImdbApi.Repository;
 using ImdbApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -10,16 +9,17 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+//builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<AppDbContext>(opt => opt.UseInMemoryDatabase("ImdbDb"));
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IMovieService, MovieService>();
 builder.Services.AddScoped<UserMapper>();
 builder.Services.AddScoped<AuthMapper>();
+builder.Services.AddScoped<MovieMapper>();
 
 builder.Services.AddControllers();
 

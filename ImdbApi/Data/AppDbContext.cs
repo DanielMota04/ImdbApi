@@ -8,10 +8,11 @@ namespace ImdbApi.Data
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<Movie> Movies { get; set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            optionsBuilder.UseSqlServer(@"Server=localhost;Database=ImdbApiDb;Trusted_Connection=True;MultipleActiveResultSets=true");
-        }
+//        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+//        {
+//            optionsBuilder.UseSqlServer(@"Server=.\\SQLEXPRESS;Database=ImdbDb;Trusted_Connection=True;TrustServerCertificate=True;");
+//        }
     }
 }

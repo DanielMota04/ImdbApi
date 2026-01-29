@@ -1,5 +1,5 @@
 ﻿using ImdbApi.DTOs.Request;
-using ImdbApi.Services;
+using ImdbApi.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ImdbApi.Controllers

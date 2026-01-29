@@ -1,7 +1,7 @@
 ﻿using ImdbApi.DTOs.Request;
 using ImdbApi.DTOs.Response;
 
-namespace ImdbApi.Services
+namespace ImdbApi.Interfaces
 {
     public interface IAuthService
     {
