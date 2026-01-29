@@ -9,10 +9,11 @@ namespace ImdbApi.Data
 
         public DbSet<User> Users { get; set; }
         public DbSet<Movie> Movies { get; set; }
+        public DbSet<MovieList> MovieList { get; set; }
 
-//        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-//        {
-//            optionsBuilder.UseSqlServer(@"Server=.\\SQLEXPRESS;Database=ImdbDb;Trusted_Connection=True;TrustServerCertificate=True;");
-//        }
+        //        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        //        {
+        //            optionsBuilder.UseSqlServer(@"Server=.\\SQLEXPRESS;Database=ImdbDb;Trusted_Connection=True;TrustServerCertificate=True;");
+        //        }
     }
 }

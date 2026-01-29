@@ -18,6 +18,17 @@ namespace ImdbApi.Mappers
             return dto;
         }
 
+        public UserResponse ToUserResponse(User entity)
+        {
+            UserResponse dto = new()
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                Role = entity.Role
+            };
+            return dto;
+        }
+
         public User RegisterToEntity(AuthRegisterRequestDTO dto, int id)
         {
             User entity = new()

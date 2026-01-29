@@ -11,15 +11,20 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 //builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddDbContext<AppDbContext>(opt => opt.UseInMemoryDatabase("ImdbDb"));
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IMovieService, MovieService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IMovieListService, MovieListService>();
 builder.Services.AddScoped<UserMapper>();
 builder.Services.AddScoped<AuthMapper>();
 builder.Services.AddScoped<MovieMapper>();
+builder.Services.AddScoped<MovieListMapper>();
+
 
 builder.Services.AddControllers();
 
