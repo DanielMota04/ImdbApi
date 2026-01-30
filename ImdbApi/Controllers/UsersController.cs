@@ -28,6 +28,7 @@ namespace ImdbApi.Controllers
             return Ok(value);
         }
 
+        // Adicionar query params para filtrar os usuários por Admin ou user comum
         [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserResponse>>> GetAllUsers()

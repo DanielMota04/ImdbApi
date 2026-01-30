@@ -30,6 +30,13 @@ namespace ImdbApi.Services
 
             return usersReturn;
         }
+        public async Task<IEnumerable<UserResponse>> GetAllNoAdminUsers()
+        {
+            var users = await _userRepository.GetAllNoAdminUsersAsync();
+            var usersReturn = users.Where(u => u.IsActive.Equals(true)).Select(u => _mapper.ToUserResponse(u));
+
+            return usersReturn;
+        }
 
         public async Task<UserResponse?> GetUserById(int id)
         {
