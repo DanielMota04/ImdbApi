@@ -1,0 +1,41 @@
+﻿using ImdbApi.Data;
+using ImdbApi.Interfaces.Repositories;
+using ImdbApi.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace ImdbApi.Repositories
+{
+    public class MovieListRepository : IMovieListRepository
+    {
+        private readonly AppDbContext _context;
+
+        public MovieListRepository(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<MovieList> CreateMovieList(MovieList ml)
+        {
+            _context.MovieLists.Add(ml);
+            await _context.SaveChangesAsync();
+            return ml;
+        }
+
+        public async Task<MovieList?> FindMovieListById(int id)
+        {
+            return await _context.MovieLists.FirstOrDefaultAsync(ml => ml.MovieListId == id);
+        }
+
+        public async Task<IEnumerable<MovieList>> ListMoviesByUserId(int id)
+        {
+            return await _context.MovieLists.Where(ml => ml.UserId == id).ToListAsync();
+        }
+
+        public async Task<bool> RemoveMovieFromList(MovieList ml)
+        {
+            _context.MovieLists.Remove(ml);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+    }
+}

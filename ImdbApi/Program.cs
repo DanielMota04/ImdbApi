@@ -58,6 +58,7 @@ builder.Services.AddScoped<IMovieListService, MovieListService>();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IMovieRepository, MovieRepository>();
+builder.Services.AddScoped<IMovieListRepository, MovieListRepository>();
 
 builder.Services.AddScoped<UserMapper>();
 builder.Services.AddScoped<AuthMapper>();
