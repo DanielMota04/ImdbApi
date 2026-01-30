@@ -3,27 +3,26 @@ using ImdbApi.DTOs.Request;
 using ImdbApi.DTOs.Response;
 using ImdbApi.Interfaces;
 using ImdbApi.Mappers;
-using Microsoft.EntityFrameworkCore;
 
 namespace ImdbApi.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly AppDbContext _context;
         private readonly AuthMapper _mapper;
         private readonly IJwtService _jwtService;
-        public AuthService(AppDbContext context, AuthMapper mapper, IJwtService jwtService) 
+        private readonly IUserRepository _userRepository;
+        public AuthService(AuthMapper mapper, IJwtService jwtService, IUserRepository userRepository)
         {
-            _context = context;
             _mapper = mapper;
             _jwtService = jwtService;
+            _userRepository = userRepository;
         }
 
         public async Task<AuthResponseDTO> RegisterAsync(AuthRegisterRequestDTO dto)
         {
             string normalizedEmail = dto.Email.Trim().ToLower();
 
-            if (await _context.Users.AnyAsync(u => u.Email == normalizedEmail))
+            if (await _userRepository.UserExistsByEmail(normalizedEmail))
             {
                 return null;
             }
@@ -31,8 +30,7 @@ namespace ImdbApi.Services
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
             var userEntity = _mapper.RegisterToEntity(dto, normalizedEmail, passwordHash);
 
-            _context.Users.Add(userEntity);
-            await _context.SaveChangesAsync();
+            await _userRepository.CreateUser(userEntity);
 
             return _mapper.EntityToResponse(userEntity);
         }
@@ -41,7 +39,7 @@ namespace ImdbApi.Services
         {
             var normalizedEmail = dto.Email.Trim().ToLower();
 
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail);
+            var user = await _userRepository.FindUserByEmail(normalizedEmail);
             if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.Password)) return null;
 
             return _jwtService.GenerateToken(user);

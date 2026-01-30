@@ -1,6 +1,7 @@
 using ImdbApi.Data;
 using ImdbApi.Interfaces;
 using ImdbApi.Mappers;
+using ImdbApi.Repositories;
 using ImdbApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
@@ -53,6 +54,9 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IMovieService, MovieService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IMovieListService, MovieListService>();
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
 builder.Services.AddScoped<UserMapper>();
 builder.Services.AddScoped<AuthMapper>();
 builder.Services.AddScoped<MovieMapper>();
