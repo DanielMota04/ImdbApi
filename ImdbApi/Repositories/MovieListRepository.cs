@@ -26,6 +26,11 @@ namespace ImdbApi.Repositories
             return await _context.MovieLists.FirstOrDefaultAsync(ml => ml.MovieListId == id);
         }
 
+        public async Task<bool> IsMovieOnUserList(int userId)
+        {
+            return await _context.MovieLists.AnyAsync(ml => ml.UserId == userId);
+        }
+
         public async Task<IEnumerable<MovieList>> ListMoviesByUserId(int id)
         {
             return await _context.MovieLists.Where(ml => ml.UserId == id).ToListAsync();

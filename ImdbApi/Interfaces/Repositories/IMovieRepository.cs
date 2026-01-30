@@ -9,5 +9,6 @@ namespace ImdbApi.Interfaces.Repositories
         public Task<IEnumerable<Movie>> GetAllMovies();
         public Task<Movie?> FindMovieById(int id);
         public Task<bool> DeleteMovie(Movie m);
+        public Task<bool> UpdateRating(Movie m);
     }
 }

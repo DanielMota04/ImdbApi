@@ -43,5 +43,12 @@ namespace ImdbApi.Repositories
         {
             return await _context.Movies.ToListAsync();
         }
+
+        public async Task<bool> UpdateRating(Movie m)
+        {
+            var movie = _context.Movies.Update(m);
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }

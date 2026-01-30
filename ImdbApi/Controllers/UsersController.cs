@@ -16,6 +16,18 @@ namespace ImdbApi.Controllers
             _service = service;
         }
 
+        [Authorize]
+        [HttpPut("{movieId}")]
+        public async Task<ActionResult> Vote(int movieId, double vote)
+        {
+            var value = await _service.Vote(movieId, vote);
+
+            if (value == null) 
+                return BadRequest("Movie not in users list");
+            
+            return Ok(value);
+        }
+
         [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserResponse>>> GetAllUsers()
