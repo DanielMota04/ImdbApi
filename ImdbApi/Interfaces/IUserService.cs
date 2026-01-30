@@ -7,5 +7,6 @@ namespace ImdbApi.Interfaces
     {
         public Task<IEnumerable<UserResponse>> GetAllUsers();
         public Task<UserResponse?> GetUserById(int id);
+        public Task<bool> DeactivateUser(int id);
     }
 }

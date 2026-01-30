@@ -13,7 +13,8 @@ namespace ImdbApi.Mappers
                 Name = dto.Name,
                 Email = email,
                 Password = password,
-                Role = dto.Role
+                Role = dto.Role,
+                IsActive = true
             };
             return user;
         }

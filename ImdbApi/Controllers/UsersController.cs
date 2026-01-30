@@ -33,5 +33,14 @@ namespace ImdbApi.Controllers
             return Ok(user);
         }
 
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeactivateUser(int id)
+        {
+            var user = await _service.DeactivateUser(id);
+            if (!user) return NotFound();
+            return NoContent();
+        }
+
     }
 }

@@ -21,7 +21,7 @@ namespace ImdbApi.Services
         public async Task<IEnumerable<UserResponse>> GetAllUsers()
         {
             var users = await _context.Users.ToListAsync();
-            var usersReturn = users.Select(u => _mapper.ToUserResponse(u));
+            var usersReturn = users.Where(u => u.IsActive.Equals(true)).Select(u => _mapper.ToUserResponse(u));
 
             return usersReturn;
         }
@@ -32,6 +32,17 @@ namespace ImdbApi.Services
             if (user == null) return null;
 
             return _mapper.ToUserResponse(user);
+        }
+
+        public async Task<bool> DeactivateUser(int id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null) return false;
+            user.IsActive = false;
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+
+            return true;
         }
     }
 }
