@@ -1,5 +1,6 @@
 using ImdbApi.Data;
 using ImdbApi.Interfaces;
+using ImdbApi.Interfaces.Repositories;
 using ImdbApi.Mappers;
 using ImdbApi.Repositories;
 using ImdbApi.Services;
@@ -56,6 +57,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IMovieListService, MovieListService>();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IMovieRepository, MovieRepository>();
 
 builder.Services.AddScoped<UserMapper>();
 builder.Services.AddScoped<AuthMapper>();

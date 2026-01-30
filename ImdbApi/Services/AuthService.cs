@@ -2,6 +2,7 @@
 using ImdbApi.DTOs.Request;
 using ImdbApi.DTOs.Response;
 using ImdbApi.Interfaces;
+using ImdbApi.Interfaces.Repositories;
 using ImdbApi.Mappers;
 
 namespace ImdbApi.Services

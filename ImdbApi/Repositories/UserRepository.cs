@@ -1,5 +1,5 @@
 ﻿using ImdbApi.Data;
-using ImdbApi.Interfaces;
+using ImdbApi.Interfaces.Repositories;
 using ImdbApi.Models;
 using Microsoft.EntityFrameworkCore;
 

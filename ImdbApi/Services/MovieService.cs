@@ -2,6 +2,7 @@
 using ImdbApi.DTOs.Request;
 using ImdbApi.DTOs.Response;
 using ImdbApi.Interfaces;
+using ImdbApi.Interfaces.Repositories;
 using ImdbApi.Mappers;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
@@ -10,13 +11,13 @@ namespace ImdbApi.Services
 {
     public class MovieService : IMovieService
     {
-        private readonly AppDbContext _context;
         private readonly MovieMapper _mapper;
+        private readonly IMovieRepository _repository;
 
-        public MovieService(AppDbContext context, MovieMapper mapper)
+        public MovieService(MovieMapper mapper, IMovieRepository repository)
         {
-            _context = context;
             _mapper = mapper;
+            _repository = repository;
         }
 
         public async Task<MovieDetailsResponseDTO> CreateMovie(CreateMovieRequestDTO dto)
@@ -25,18 +26,17 @@ namespace ImdbApi.Services
             var genre = dto.Genre.Trim().Normalize();
             var director = dto.Director.Trim().Normalize();
 
-            if (await _context.Movies.AnyAsync(m => m.Title == title)) return null;
+            if (await _repository.FindMovieByTitle(title)) return null;
 
             var movie = _mapper.CreateToEntity(title, genre, director);
-            _context.Movies.Add(movie);
-            await _context.SaveChangesAsync();
+            await _repository.CreateMovie(movie);
 
             return _mapper.EntityToDetails(movie);
         }
 
         public async Task<IEnumerable<MovieResponseDTO>> GetAllMovies()
         {
-            var movies = await _context.Movies.ToListAsync();
+            var movies = await _repository.GetAllMovies();
             var moviesDTO = movies.Select(m => _mapper.EntityToResponse(m));
 
             return moviesDTO;
@@ -44,18 +44,17 @@ namespace ImdbApi.Services
 
         public async Task<MovieDetailsResponseDTO> GetMovieById(int id)
         {
-            var movie = await _context.Movies.FindAsync(id);
+            var movie = await _repository.FindMovieById(id);
             if (movie == null) return null;
             return _mapper.EntityToDetails(movie);
         }
 
         public async Task<bool> DeleteMovie(int id)
         {
-            var movie = await _context.Movies.FindAsync(id);
+            var movie = await _repository.FindMovieById(id);
 
             if (movie == null) return false;
-            _context.Movies.Remove(movie);
-            await _context.SaveChangesAsync();
+            await _repository.DeleteMovie(movie);
 
             return true;
         }
