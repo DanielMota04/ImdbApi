@@ -1,5 +1,6 @@
 ﻿using ImdbApi.DTOs.Response;
 using ImdbApi.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ImdbApi.Controllers
@@ -15,6 +16,7 @@ namespace ImdbApi.Controllers
             _service = service;
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserResponse>>> GetAllUsers()
         {
@@ -22,6 +24,7 @@ namespace ImdbApi.Controllers
             return Ok(users);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("{id}")]
         public async Task<ActionResult> GetUserById(int id)
         {
