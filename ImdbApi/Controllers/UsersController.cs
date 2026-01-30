@@ -33,6 +33,5 @@ namespace ImdbApi.Controllers
             return Ok(user);
         }
 
-
     }
 }

@@ -2,6 +2,8 @@
 using ImdbApi.Models;
 using ImdbApi.Interfaces;
 using ImdbApi.DTOs.Request;
+using Microsoft.AspNetCore.Authorization;
+using ImdbApi.DTOs.Response;
 
 namespace ImdbApi.Controllers
 {
@@ -10,10 +12,12 @@ namespace ImdbApi.Controllers
     public class MoviesController : ControllerBase
     {
         private readonly IMovieService _service;
+        private readonly IMovieListService _movieListService;
 
-        public MoviesController(IMovieService service)
+        public MoviesController(IMovieService service, IMovieListService movieListService)
         {
             _service = service;
+            _movieListService = movieListService;
         }
 
         [HttpGet]
@@ -31,6 +35,7 @@ namespace ImdbApi.Controllers
             return Ok(movie);
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> CreateMovie(CreateMovieRequestDTO dto)
         {
@@ -45,6 +50,33 @@ namespace ImdbApi.Controllers
             var result = await _service.DeleteMovie(id);
             if (!result) return NotFound();
             return NoContent();
+        }
+
+
+        [Authorize]
+        [HttpPost("{id}/addToList")]
+        public async Task<IActionResult> AddMovieToList(int id)
+        {
+            var result = await _movieListService.AddMovieToList(id);
+            if (result == null) return NotFound("Movie not found.");
+            return Ok(result);
+        }
+
+        [Authorize]
+        [HttpGet("myList")]
+        public async Task<ActionResult<IEnumerable<MovieDetailsResponseDTO>>> GetMovieList()
+        {
+            var result = await _movieListService.GetMovieList();
+            return Ok(result);
+        }
+
+        [Authorize]
+        [HttpDelete("{id}/removeFromList")]
+        public async Task<IActionResult> RemoveMovieFromList(int id)
+        {
+            var result = await _movieListService.RemoveMovieFromList(id);
+            if (!result) return NotFound("Movie not found in your list.");
+            return Ok(result);
         }
 
     }

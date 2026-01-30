@@ -9,7 +9,7 @@ namespace ImdbApi.Data
 
         public DbSet<User> Users { get; set; }
         public DbSet<Movie> Movies { get; set; }
-        public DbSet<MovieList> MovieList { get; set; }
+        public DbSet<MovieList> MovieLists { get; set; }
 
         //        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         //        {

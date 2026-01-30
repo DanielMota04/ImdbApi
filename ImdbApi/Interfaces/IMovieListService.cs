@@ -4,7 +4,8 @@ namespace ImdbApi.Interfaces
 {
     public interface IMovieListService
     {
-        public Task<MovieListResponseDTO> AddMovieToList(int movieId, string username);
-        public Task<bool> RemoveMovieFronList(int id);
+        public Task<MovieListResponseDTO> AddMovieToList(int movieId);
+        public Task<bool> RemoveMovieFromList(int id);
+        public Task<IEnumerable<MovieDetailsResponseDTO>> GetMovieList();
     }
 }
