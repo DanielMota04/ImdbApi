@@ -1,6 +1,6 @@
 ﻿using ImdbApi.Data;
-using ImdbApi.DTOs.Request;
-using ImdbApi.DTOs.Response;
+using ImdbApi.DTOs.Request.Auth;
+using ImdbApi.DTOs.Response.Auth;
 using ImdbApi.Interfaces.Repositories;
 using ImdbApi.Interfaces.Services;
 using ImdbApi.Mappers;

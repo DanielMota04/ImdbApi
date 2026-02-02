@@ -1,10 +1,8 @@
-﻿namespace ImdbApi.DTOs.Response
+﻿namespace ImdbApi.DTOs.Request.Movie
 {
-    public class MovieDetailsResponseDTO
+    public class CreateMovieRequestDTO
     {
-        public int Id { get; set; }
         public required string Title { get; set; }
-        public required double Rating { get; set; }
         public required string Genre { get; set; }
         public required string Director { get; set; }
     }

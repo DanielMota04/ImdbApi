@@ -1,4 +1,4 @@
-﻿using ImdbApi.DTOs.Response;
+﻿using ImdbApi.DTOs.Response.Movie;
 
 namespace ImdbApi.Interfaces.Services
 {

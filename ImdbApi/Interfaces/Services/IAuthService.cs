@@ -1,5 +1,5 @@
-﻿using ImdbApi.DTOs.Request;
-using ImdbApi.DTOs.Response;
+﻿using ImdbApi.DTOs.Request.Auth;
+using ImdbApi.DTOs.Response.Auth;
 
 namespace ImdbApi.Interfaces.Services
 {

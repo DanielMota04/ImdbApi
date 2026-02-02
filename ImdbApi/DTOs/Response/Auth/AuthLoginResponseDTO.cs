@@ -1,4 +1,4 @@
-﻿namespace ImdbApi.DTOs.Response
+﻿namespace ImdbApi.DTOs.Response.Auth
 {
     public class AuthLoginResponseDTO
     {

@@ -1,6 +1,6 @@
 ﻿using ImdbApi.Enums;
 
-namespace ImdbApi.DTOs.Response
+namespace ImdbApi.DTOs.Response.User
 {
     public class UserResponse
     {

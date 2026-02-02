@@ -1,5 +1,6 @@
-﻿using ImdbApi.DTOs.Request;
-using ImdbApi.DTOs.Response;
+﻿using ImdbApi.DTOs.Request.Auth;
+using ImdbApi.DTOs.Response.Auth;
+using ImdbApi.DTOs.Response.User;
 using ImdbApi.Models;
 
 namespace ImdbApi.Mappers

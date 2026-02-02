@@ -1,6 +1,6 @@
 ﻿using ImdbApi.Models;
 
-namespace ImdbApi.DTOs.Request
+namespace ImdbApi.DTOs.Request.User
 {
     public class UpdateUserRequestDTO
     {

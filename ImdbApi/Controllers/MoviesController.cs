@@ -1,5 +1,5 @@
-﻿using ImdbApi.DTOs.Request;
-using ImdbApi.DTOs.Response;
+﻿using ImdbApi.DTOs.Request.Movie;
+using ImdbApi.DTOs.Response.Movie;
 using ImdbApi.Enums;
 using ImdbApi.Interfaces.Services;
 using ImdbApi.Models;

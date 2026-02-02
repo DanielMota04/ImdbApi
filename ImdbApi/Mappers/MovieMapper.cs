@@ -1,4 +1,4 @@
-﻿using ImdbApi.DTOs.Response;
+﻿using ImdbApi.DTOs.Response.Movie;
 using ImdbApi.Models;
 
 namespace ImdbApi.Mappers
@@ -12,6 +12,10 @@ namespace ImdbApi.Mappers
                 Title = title,
                 Rating = 0.0,
                 Genre = genre,
+                Actors = new List<string>
+                {
+                    "João", "Pedro"
+                },
                 Director = director
             };
 

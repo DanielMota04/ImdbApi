@@ -1,4 +1,4 @@
-﻿using ImdbApi.DTOs.Request;
+﻿using ImdbApi.DTOs.Request.Auth;
 using ImdbApi.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,7 +28,7 @@ namespace ImdbApi.Controllers
         {
             var token = await _service.LoginAsync(dto);
             if (token == null) return Unauthorized("Invalid email or password");
-            return Ok(new { Token = token });
+            return Ok(token);
         }
 
 

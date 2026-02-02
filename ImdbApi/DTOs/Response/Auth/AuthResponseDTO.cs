@@ -1,13 +1,12 @@
 ﻿using ImdbApi.Enums;
-using ImdbApi.Models;
 
-namespace ImdbApi.DTOs.Request
+namespace ImdbApi.DTOs.Response.Auth
 {
-    public class AuthRegisterRequestDTO
+    public class AuthResponseDTO
     {
+        public int Id { get; set; }
         public string Name { get; set; }
         public string Email { get; set; }
-        public string Password { get; set; }
         public Roles Role { get; set; }
     }
 }
