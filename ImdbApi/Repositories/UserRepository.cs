@@ -19,13 +19,11 @@ namespace ImdbApi.Repositories
             var users = await _context.Users.ToListAsync();
             return users;
         }
-
         public async Task<User?> GetUserByIdAsync(int id)
         {
             var user = await _context.Users.FindAsync(id);
             return user;
         }
-
         public async Task<User> DeactivateUser(User u)
         {
             var user = await GetUserByIdAsync(u.Id);
@@ -34,7 +32,6 @@ namespace ImdbApi.Repositories
 
             return user;
         }
-
         public async Task<User> CreateUser(User u)
         {
             _context.Users.Add(u);
@@ -42,17 +39,21 @@ namespace ImdbApi.Repositories
 
             return u;
         }
+        public async Task<User> UpdateUser(User u)
+        {
+            _context.Users.Update(u);
+            await _context.SaveChangesAsync();
 
+            return u;
+        }
         public async Task<bool> UserExistsByEmail(string email)
         {
             return await _context.Users.AnyAsync(u => u.Email == email);
         }
-
         public async Task<User?> FindUserByEmail(string email)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
             return user;
         }
-
     }
 }

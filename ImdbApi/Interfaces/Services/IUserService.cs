@@ -1,4 +1,5 @@
-﻿using ImdbApi.DTOs.Response;
+﻿using ImdbApi.DTOs.Request;
+using ImdbApi.DTOs.Response;
 using ImdbApi.Models;
 
 namespace ImdbApi.Interfaces.Services
@@ -8,6 +9,6 @@ namespace ImdbApi.Interfaces.Services
         public Task<IEnumerable<UserResponse>> GetAllUsers(Roles? role);
         public Task<UserResponse?> GetUserById(int id);
         public Task<bool> DeactivateUser(int id);
-        public Task<double?> Vote(int movieId, double vote);
+        public Task<UserResponse> UpdateUser(int id, UpdateUserRequestDTO dto);
     }
 }

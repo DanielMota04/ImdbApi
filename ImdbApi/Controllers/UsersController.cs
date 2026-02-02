@@ -1,4 +1,5 @@
-﻿using ImdbApi.DTOs.Response;
+﻿using ImdbApi.DTOs.Request;
+using ImdbApi.DTOs.Response;
 using ImdbApi.Interfaces.Services;
 using ImdbApi.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -17,25 +18,21 @@ namespace ImdbApi.Controllers
             _service = service;
         }
 
-        [Authorize]
-        [HttpPut("{movieId}")]
-        public async Task<ActionResult> Vote(int movieId, double vote)
-        {
-            var value = await _service.Vote(movieId, vote);
-
-            if (value == null) 
-                return BadRequest("Movie not in users list");
-            
-            return Ok(value);
-        }
-
-        // Adicionar query params para filtrar os usuários por Admin ou user comum
         [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserResponse>>> GetAllUsers([FromQuery] Roles? role)
         {
             var users = await _service.GetAllUsers(role);
             return Ok(users);
+        }
+
+        [Authorize]
+        [HttpPut("{id}")]
+        public async Task<ActionResult> UpdateUser(int id, UpdateUserRequestDTO dto)
+        {
+            var response = await _service.UpdateUser(id, dto);
+            if (response == null) return NotFound();
+            return Ok(response);
         }
 
         [Authorize(Roles = "Admin")]

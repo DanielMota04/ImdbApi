@@ -1,24 +1,26 @@
-﻿using ImdbApi.Data;
-using ImdbApi.DTOs.Request;
+﻿using ImdbApi.DTOs.Request;
 using ImdbApi.DTOs.Response;
 using ImdbApi.Interfaces.Repositories;
 using ImdbApi.Interfaces.Services;
 using ImdbApi.Mappers;
-using ImdbApi.Models;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.EntityFrameworkCore;
+using ImdbApi.Repositories;
+using System.Security.Claims;
 
 namespace ImdbApi.Services
 {
     public class MovieService : IMovieService
     {
         private readonly MovieMapper _mapper;
-        private readonly IMovieRepository _repository;
+        private readonly IMovieRepository _movieRepository; 
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IMovieListRepository _movieListRepository;
 
-        public MovieService(MovieMapper mapper, IMovieRepository repository)
+        public MovieService(MovieMapper mapper, IMovieRepository movieRepository, IHttpContextAccessor httpContextAccessor, IMovieListRepository movieListRepository)
         {
             _mapper = mapper;
-            _repository = repository;
+            _movieRepository = movieRepository;
+            _httpContextAccessor = httpContextAccessor;
+            _movieListRepository = movieListRepository;
         }
 
         public async Task<MovieDetailsResponseDTO> CreateMovie(CreateMovieRequestDTO dto)
@@ -27,17 +29,17 @@ namespace ImdbApi.Services
             var genre = dto.Genre.Trim().Normalize();
             var director = dto.Director.Trim().Normalize();
 
-            if (await _repository.FindMovieByTitle(title)) return null;
+            if (await _movieRepository.FindMovieByTitle(title)) return null;
 
-            var movie = _mapper.CreateToEntity(title, genre, director);
-            await _repository.CreateMovie(movie);
+            var movie = _mapper.CreateToEntity(title, genre, director); 
+            await _movieRepository.CreateMovie(movie);
 
             return _mapper.EntityToDetails(movie);
         }
 
         public async Task<IEnumerable<MovieResponseDTO>> GetAllMovies(string? title, string? director, string? genre)
         {
-            var movies = await _repository.GetAllMovies();
+            var movies = await _movieRepository.GetAllMovies();
 
             // buscar isso
 
@@ -48,19 +50,36 @@ namespace ImdbApi.Services
 
         public async Task<MovieDetailsResponseDTO> GetMovieById(int id)
         {
-            var movie = await _repository.FindMovieById(id);
+            var movie = await _movieRepository.FindMovieById(id);
             if (movie == null) return null;
             return _mapper.EntityToDetails(movie);
         }
 
         public async Task<bool> DeleteMovie(int id)
         {
-            var movie = await _repository.FindMovieById(id);
+            var movie = await _movieRepository.FindMovieById(id);
 
             if (movie == null) return false;
-            await _repository.DeleteMovie(movie);
+            await _movieRepository.DeleteMovie(movie);
 
             return true;
+        }
+
+        public async Task<double?> Vote(int movieId, double vote)
+        {
+            var movie = await _movieRepository.FindMovieById(movieId);
+            var userId = int.Parse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var movieList = await _movieListRepository.ListMoviesByUserId(userId);
+
+            if (!await _movieListRepository.IsMovieOnUserList(userId)) return null;
+
+            movie.TotalRating += vote;
+            movie.Votes += 1;
+            movie.Rating = movie.TotalRating / movie.Votes;
+
+            await _movieRepository.UpdateRating(movie);
+
+            return movie.Rating;
         }
     }
 }

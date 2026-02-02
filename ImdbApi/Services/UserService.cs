@@ -1,28 +1,20 @@
-﻿using ImdbApi.DTOs.Response;
+﻿using ImdbApi.DTOs.Request;
+using ImdbApi.DTOs.Response;
 using ImdbApi.Interfaces.Repositories;
 using ImdbApi.Interfaces.Services;
 using ImdbApi.Mappers;
 using ImdbApi.Models;
-using System.Security.Claims;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace ImdbApi.Services
 {
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
-        private readonly IMovieRepository _movieRepository;
-        private readonly IMovieListRepository _movieListRepository;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly UserMapper _mapper;
-
-        public UserService(IUserRepository userRepository, IMovieRepository movieRepository, IHttpContextAccessor httpContextAccessor, UserMapper mapper, IMovieListRepository movieListRepository)
+        public UserService(IUserRepository userRepository, UserMapper mapper)
         {
             _userRepository = userRepository;
-            _movieRepository = movieRepository;
-            _httpContextAccessor = httpContextAccessor;
             _mapper = mapper;
-            _movieListRepository = movieListRepository;
         }
 
         public async Task<IEnumerable<UserResponse>> GetAllUsers(Roles? role)
@@ -37,6 +29,7 @@ namespace ImdbApi.Services
 
             return usersReturn.Select(u => _mapper.ToUserResponse(u)).OrderBy(s => s.Name);
         }
+
 
         public async Task<UserResponse?> GetUserById(int id)
         {
@@ -56,21 +49,18 @@ namespace ImdbApi.Services
             return true;
         }
 
-        public async Task<double?> Vote(int movieId, double vote)
+        public async Task<UserResponse> UpdateUser(int id, UpdateUserRequestDTO dto)
         {
-            var movie = await _movieRepository.FindMovieById(movieId);
-            var userId = int.Parse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            var movieList = await _movieListRepository.ListMoviesByUserId(userId);
+            var user = await _userRepository.GetUserByIdAsync(id);
+            if (user == null) return null;
 
-            if (!await _movieListRepository.IsMovieOnUserList(userId)) return null;
+            user.Name = dto.Name;
+            user.Password = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
-            movie.TotalRating += vote;
-            movie.Votes += 1;
-            movie.Rating = movie.TotalRating / movie.Votes;
+            await _userRepository.UpdateUser(user);
 
-            await _movieRepository.UpdateRating(movie);
+            return _mapper.ToUserResponse(user);
 
-            return movie.Rating;
         }
     }
 }
