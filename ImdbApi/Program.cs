@@ -1,3 +1,4 @@
+using FluentValidation;
 using ImdbApi.Data;
 using ImdbApi.Interfaces.Repositories;
 using ImdbApi.Interfaces.Services;
@@ -5,6 +6,7 @@ using ImdbApi.Mappers;
 using ImdbApi.Repositories;
 using ImdbApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -63,7 +65,6 @@ builder.Services.AddScoped<UserMapper>();
 builder.Services.AddScoped<AuthMapper>();
 builder.Services.AddScoped<MovieMapper>();
 builder.Services.AddScoped<MovieListMapper>();
-
 
 builder.Services.AddControllers();
 

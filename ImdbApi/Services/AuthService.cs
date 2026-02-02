@@ -1,9 +1,10 @@
-﻿using ImdbApi.Data;
+﻿using FluentValidation;
 using ImdbApi.DTOs.Request.Auth;
 using ImdbApi.DTOs.Response.Auth;
 using ImdbApi.Interfaces.Repositories;
 using ImdbApi.Interfaces.Services;
 using ImdbApi.Mappers;
+using ImdbApi.Validators;
 
 namespace ImdbApi.Services
 {
@@ -21,6 +22,8 @@ namespace ImdbApi.Services
 
         public async Task<AuthResponseDTO> RegisterAsync(AuthRegisterRequestDTO dto)
         {
+            RegisterValidator validator = new RegisterValidator();
+
             string normalizedEmail = dto.Email.Trim().ToLower();
 
             if (await _userRepository.UserExistsByEmail(normalizedEmail))
@@ -30,6 +33,8 @@ namespace ImdbApi.Services
 
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
             var userEntity = _mapper.RegisterToEntity(dto, normalizedEmail, passwordHash);
+
+            validator.ValidateAndThrow(userEntity);
 
             await _userRepository.CreateUser(userEntity);
 
