@@ -40,18 +40,28 @@ namespace ImdbApi.Services
             return _mapper.EntityToDetails(movie);
         }
 
-        public async Task<IEnumerable<MovieResponseDTO>> GetAllMovies(string? title, string? director, string? genre, MovieOrderBy orderBy)
+        public async Task<IEnumerable<MovieResponseDTO>> GetAllMovies(string? title, string? director, string? genre, List<string>? actors, MovieOrderBy order)
         {
             var movies = await _movieRepository.GetAllMovies();
 
-            //Opção de filtros por diretor, nome, gênero e/ ou atores
+            if (title != null)
+            {
+                movies = movies.Where(m => m.Title.Contains(title));
+            }
+            if (director != null)
+            {
+                movies = movies.Where(m => m.Director.Contains(director));
+            }
+            if (genre != null)
+            {
+                movies = movies.Where(m => m.Genre.Contains(genre));
+            }
 
-
-            if (orderBy.ToString().Equals("Rating"))
+            if (order.ToString().Equals("Rating"))
             {
                 movies = movies.OrderByDescending(m => m.Rating).ToList();
             }
-            else if (orderBy.ToString().Equals("Alphabetic"))
+            else if (order.ToString().Equals("Alphabetic"))
             {
                 movies = movies.OrderBy(m => m.Title).ToList();
             }

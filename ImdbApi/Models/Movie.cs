@@ -9,7 +9,7 @@
         public int Votes { get; set; } = 0;
         public required string Genre { get; set; }
         public required string Director { get; set; }
-        //public string Actors { get; set; }
+        public required List<string> Actors { get; set; }
 
     }
 }
