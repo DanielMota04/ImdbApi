@@ -4,6 +4,7 @@ using ImdbApi.DTOs.Response;
 using ImdbApi.Interfaces.Repositories;
 using ImdbApi.Interfaces.Services;
 using ImdbApi.Mappers;
+using ImdbApi.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
@@ -34,9 +35,12 @@ namespace ImdbApi.Services
             return _mapper.EntityToDetails(movie);
         }
 
-        public async Task<IEnumerable<MovieResponseDTO>> GetAllMovies()
+        public async Task<IEnumerable<MovieResponseDTO>> GetAllMovies(string? title, string? director, string? genre)
         {
             var movies = await _repository.GetAllMovies();
+
+            // buscar isso
+
             var moviesDTO = movies.Select(m => _mapper.EntityToResponse(m));
 
             return moviesDTO;

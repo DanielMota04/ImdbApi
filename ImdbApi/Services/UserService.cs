@@ -32,10 +32,10 @@ namespace ImdbApi.Services
 
             if (role.HasValue)
             {
-                return usersReturn.Where(u => u.Role.Equals(role)).Select(u => _mapper.ToUserResponse(u));
+                return usersReturn.Where(u => u.Role.Equals(role)).Select(u => _mapper.ToUserResponse(u)).OrderBy(s => s.Name);
             }
 
-            return usersReturn.Select(u => _mapper.ToUserResponse(u));
+            return usersReturn.Select(u => _mapper.ToUserResponse(u)).OrderBy(s => s.Name);
         }
 
         public async Task<UserResponse?> GetUserById(int id)
