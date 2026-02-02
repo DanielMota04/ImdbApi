@@ -32,15 +32,17 @@ namespace ImdbApi.Services
             var genre = dto.Genre.Trim().Normalize();
             var director = dto.Director.Trim().Normalize();
 
+            var actors = dto.Actors.Select(a => a.Trim().Normalize()).ToList();
+
             if (await _movieRepository.FindMovieByTitle(title)) return null;
 
-            var movie = _mapper.CreateToEntity(title, genre, director); 
+            var movie = _mapper.CreateToEntity(title, genre, actors, director); 
             await _movieRepository.CreateMovie(movie);
 
             return _mapper.EntityToDetails(movie);
         }
 
-        public async Task<IEnumerable<MovieResponseDTO>> GetAllMovies(string? title, string? director, string? genre, List<string>? actors, MovieOrderBy order)
+        public async Task<IEnumerable<MovieResponseDTO>> GetAllMovies(string? title, string? director, string? genre, string? actor, MovieOrderBy order)
         {
             var movies = await _movieRepository.GetAllMovies();
 
@@ -55,6 +57,10 @@ namespace ImdbApi.Services
             if (genre != null)
             {
                 movies = movies.Where(m => m.Genre.Contains(genre));
+            }
+            if (actor != null)
+            {
+                movies = movies.Where(m => m.Actors.Contains(actor));
             }
 
             if (order.ToString().Equals("Rating"))

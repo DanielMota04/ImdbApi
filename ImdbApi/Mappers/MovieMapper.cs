@@ -5,17 +5,14 @@ namespace ImdbApi.Mappers
 {
     public class MovieMapper
     {
-        public Movie CreateToEntity(string title, string genre, string director)
+        public Movie CreateToEntity(string title, string genre, List<string> actors, string director)
         {
             Movie movie = new()
             {
                 Title = title,
                 Rating = 0.0,
                 Genre = genre,
-                Actors = new List<string>
-                {
-                    "João", "Pedro"
-                },
+                Actors = actors,
                 Director = director
             };
 
@@ -30,7 +27,8 @@ namespace ImdbApi.Mappers
                 Title = movie.Title,
                 Rating = movie.Rating,
                 Genre = movie.Genre,
-                Director = movie.Director
+                Director = movie.Director,
+                Actors = movie.Actors,
             };
 
             return dto;

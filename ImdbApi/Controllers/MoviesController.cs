@@ -22,7 +22,7 @@ namespace ImdbApi.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Movie>>> GetMovies([FromQuery] string? title, string? director, string? genre, List<string>? actors, MovieOrderBy order)
+        public async Task<ActionResult<IEnumerable<Movie>>> GetMovies([FromQuery] string? title, string? director, string? genre, string? actors, MovieOrderBy order)
         {
             var movies = await _service.GetAllMovies(title, director, genre, actors, order);
             return Ok(movies);
