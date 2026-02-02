@@ -53,8 +53,8 @@ namespace ImdbApi.Services
             var user = await _userRepository.GetUserByIdAsync(id);
             if (user == null) return null;
 
-            user.Name = dto.Name;
-            user.Password = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+            user.Name = dto.Name != "" ? dto.Name : user.Name;
+            user.Password = dto.Password != "" ? BCrypt.Net.BCrypt.HashPassword(dto.Password) : user.Password;
 
             await _userRepository.UpdateUser(user);
 

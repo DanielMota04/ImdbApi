@@ -6,7 +6,6 @@ using ImdbApi.Mappers;
 using ImdbApi.Repositories;
 using ImdbApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -46,6 +45,7 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
+
 //builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddDbContext<AppDbContext>(opt => opt.UseInMemoryDatabase("ImdbDb"));
 
