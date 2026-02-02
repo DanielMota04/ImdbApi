@@ -5,7 +5,6 @@ namespace ImdbApi.Interfaces.Repositories
     public interface IUserRepository
     {
         public Task<IEnumerable<User>> GetAllUsersAsync();
-        public Task<IEnumerable<User>> GetAllNoAdminUsersAsync();
         public Task<User?> GetUserByIdAsync(int id);
         public Task<User> DeactivateUser(User u);
         public Task<User> CreateUser(User u);

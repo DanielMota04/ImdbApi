@@ -1,8 +1,10 @@
 ﻿using ImdbApi.DTOs.Response;
-using ImdbApi.Interfaces;
 using ImdbApi.Interfaces.Repositories;
+using ImdbApi.Interfaces.Services;
 using ImdbApi.Mappers;
+using ImdbApi.Models;
 using System.Security.Claims;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace ImdbApi.Services
 {
@@ -23,19 +25,17 @@ namespace ImdbApi.Services
             _movieListRepository = movieListRepository;
         }
 
-        public async Task<IEnumerable<UserResponse>> GetAllUsers()
+        public async Task<IEnumerable<UserResponse>> GetAllUsers(Roles? role)
         {
             var users = await _userRepository.GetAllUsersAsync();
-            var usersReturn = users.Where(u => u.IsActive.Equals(true)).Select(u => _mapper.ToUserResponse(u));
+            var usersReturn = users.Where(u => u.IsActive.Equals(true));
 
-            return usersReturn;
-        }
-        public async Task<IEnumerable<UserResponse>> GetAllNoAdminUsers()
-        {
-            var users = await _userRepository.GetAllNoAdminUsersAsync();
-            var usersReturn = users.Where(u => u.IsActive.Equals(true)).Select(u => _mapper.ToUserResponse(u));
+            if (role.HasValue)
+            {
+                return usersReturn.Where(u => u.Role.Equals(role)).Select(u => _mapper.ToUserResponse(u));
+            }
 
-            return usersReturn;
+            return usersReturn.Select(u => _mapper.ToUserResponse(u));
         }
 
         public async Task<UserResponse?> GetUserById(int id)

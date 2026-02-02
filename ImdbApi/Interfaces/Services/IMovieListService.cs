@@ -1,6 +1,6 @@
 ﻿using ImdbApi.DTOs.Response;
 
-namespace ImdbApi.Interfaces
+namespace ImdbApi.Interfaces.Services
 {
     public interface IMovieListService
     {

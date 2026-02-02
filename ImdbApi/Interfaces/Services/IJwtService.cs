@@ -1,6 +1,6 @@
 ﻿using ImdbApi.Models;
 
-namespace ImdbApi.Interfaces
+namespace ImdbApi.Interfaces.Services
 {
     public interface IJwtService
     {

@@ -1,5 +1,6 @@
 ﻿using ImdbApi.DTOs.Response;
-using ImdbApi.Interfaces;
+using ImdbApi.Interfaces.Services;
+using ImdbApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -31,9 +32,9 @@ namespace ImdbApi.Controllers
         // Adicionar query params para filtrar os usuários por Admin ou user comum
         [Authorize(Roles = "Admin")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserResponse>>> GetAllUsers()
+        public async Task<ActionResult<IEnumerable<UserResponse>>> GetAllUsers([FromQuery] Roles? role)
         {
-            var users = await _service.GetAllUsers();
+            var users = await _service.GetAllUsers(role);
             return Ok(users);
         }
 

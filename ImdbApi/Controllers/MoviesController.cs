@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ImdbApi.Models;
-using ImdbApi.Interfaces;
 using ImdbApi.DTOs.Request;
 using Microsoft.AspNetCore.Authorization;
 using ImdbApi.DTOs.Response;
+using ImdbApi.Interfaces.Services;
 
 namespace ImdbApi.Controllers
 {

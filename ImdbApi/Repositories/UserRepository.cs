@@ -16,11 +16,6 @@ namespace ImdbApi.Repositories
 
         public async Task<IEnumerable<User>> GetAllUsersAsync()
         {
-            var users = await _context.Users.Where(u => u.Role.ToString() == "User").ToListAsync();
-            return users;
-        }
-        public async Task<IEnumerable<User>> GetAllNoAdminUsersAsync()
-        {
             var users = await _context.Users.ToListAsync();
             return users;
         }

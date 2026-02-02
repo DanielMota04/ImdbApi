@@ -1,7 +1,7 @@
 ﻿using ImdbApi.Data;
 using ImdbApi.DTOs.Response;
-using ImdbApi.Interfaces;
 using ImdbApi.Interfaces.Repositories;
+using ImdbApi.Interfaces.Services;
 using ImdbApi.Mappers;
 using ImdbApi.Models;
 using System.Security.Claims;

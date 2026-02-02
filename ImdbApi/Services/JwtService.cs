@@ -1,4 +1,4 @@
-﻿using ImdbApi.Interfaces;
+﻿using ImdbApi.Interfaces.Services;
 using ImdbApi.Models;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;

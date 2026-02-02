@@ -1,6 +1,6 @@
 using ImdbApi.Data;
-using ImdbApi.Interfaces;
 using ImdbApi.Interfaces.Repositories;
+using ImdbApi.Interfaces.Services;
 using ImdbApi.Mappers;
 using ImdbApi.Repositories;
 using ImdbApi.Services;
