@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using ImdbApi.Enums;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ImdbApi.Models
 {
@@ -12,11 +13,5 @@ namespace ImdbApi.Models
         public Roles Role { get; set; }
         public bool IsActive { get; set; }
 
-    }
-
-    public enum Roles
-    {
-        Admin,
-        User
     }
 }

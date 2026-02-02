@@ -1,6 +1,6 @@
 ﻿using ImdbApi.DTOs.Request;
 using ImdbApi.DTOs.Response;
-using ImdbApi.Models;
+using ImdbApi.Enums;
 
 namespace ImdbApi.Interfaces.Services
 {

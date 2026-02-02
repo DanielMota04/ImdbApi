@@ -1,7 +1,7 @@
 ﻿using ImdbApi.DTOs.Request;
 using ImdbApi.DTOs.Response;
+using ImdbApi.Enums;
 using ImdbApi.Interfaces.Services;
-using ImdbApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using ImdbApi.Models;
-using ImdbApi.DTOs.Request;
-using Microsoft.AspNetCore.Authorization;
+﻿using ImdbApi.DTOs.Request;
 using ImdbApi.DTOs.Response;
+using ImdbApi.Enums;
 using ImdbApi.Interfaces.Services;
+using ImdbApi.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ImdbApi.Controllers
 {
@@ -21,9 +22,9 @@ namespace ImdbApi.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Movie>>> GetMovies([FromQuery] string? title, string? director, string? genre)
+        public async Task<ActionResult<IEnumerable<Movie>>> GetMovies([FromQuery] string? title, string? director, string? genre, MovieOrderBy orderBy)
         {
-            var movies = await _service.GetAllMovies(title, director, genre);
+            var movies = await _service.GetAllMovies(title, director, genre, orderBy);
             return Ok(movies);
         }
 

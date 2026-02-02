@@ -1,4 +1,4 @@
-﻿using ImdbApi.Models;
+﻿using ImdbApi.Enums;
 
 namespace ImdbApi.DTOs.Response
 {

@@ -1,9 +1,12 @@
 ﻿using ImdbApi.DTOs.Request;
 using ImdbApi.DTOs.Response;
+using ImdbApi.Enums;
 using ImdbApi.Interfaces.Repositories;
 using ImdbApi.Interfaces.Services;
 using ImdbApi.Mappers;
 using ImdbApi.Repositories;
+using System.IO;
+using System.Runtime.Intrinsics.Arm;
 using System.Security.Claims;
 
 namespace ImdbApi.Services
@@ -37,11 +40,21 @@ namespace ImdbApi.Services
             return _mapper.EntityToDetails(movie);
         }
 
-        public async Task<IEnumerable<MovieResponseDTO>> GetAllMovies(string? title, string? director, string? genre)
+        public async Task<IEnumerable<MovieResponseDTO>> GetAllMovies(string? title, string? director, string? genre, MovieOrderBy orderBy)
         {
             var movies = await _movieRepository.GetAllMovies();
 
-            // buscar isso
+            //Opção de filtros por diretor, nome, gênero e/ ou atores
+
+
+            if (orderBy.ToString().Equals("Rating"))
+            {
+                movies = movies.OrderByDescending(m => m.Rating).ToList();
+            }
+            else if (orderBy.ToString().Equals("Alphabetic"))
+            {
+                movies = movies.OrderBy(m => m.Title).ToList();
+            }
 
             var moviesDTO = movies.Select(m => _mapper.EntityToResponse(m));
 

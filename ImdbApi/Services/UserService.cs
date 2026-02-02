@@ -1,9 +1,9 @@
 ﻿using ImdbApi.DTOs.Request;
 using ImdbApi.DTOs.Response;
+using ImdbApi.Enums;
 using ImdbApi.Interfaces.Repositories;
 using ImdbApi.Interfaces.Services;
 using ImdbApi.Mappers;
-using ImdbApi.Models;
 
 namespace ImdbApi.Services
 {
@@ -29,7 +29,6 @@ namespace ImdbApi.Services
 
             return usersReturn.Select(u => _mapper.ToUserResponse(u)).OrderBy(s => s.Name);
         }
-
 
         public async Task<UserResponse?> GetUserById(int id)
         {
