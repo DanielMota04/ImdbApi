@@ -12,6 +12,5 @@ namespace ImdbApi.Models
         public required string Password { get; set; }
         public Roles Role { get; set; }
         public bool IsActive { get; set; }
-
     }
 }
