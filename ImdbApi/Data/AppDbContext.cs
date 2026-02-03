@@ -11,9 +11,15 @@ namespace ImdbApi.Data
         public DbSet<Movie> Movies { get; set; }
         public DbSet<MovieList> MovieLists { get; set; }
 
-        //        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        //        {
-        //            optionsBuilder.UseSqlServer(@"Server=.\\SQLEXPRESS;Database=ImdbDb;Trusted_Connection=True;TrustServerCertificate=True;");
-        //        }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Movie>()
+                .Property(e => e.Actors)
+                .HasConversion(
+                    v => string.Join(',', v),
+                    v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList());
+        }
     }
 }
