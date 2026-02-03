@@ -1,4 +1,3 @@
-using FluentValidation;
 using ImdbApi.Data;
 using ImdbApi.Interfaces.Repositories;
 using ImdbApi.Interfaces.Services;
@@ -47,7 +46,6 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-//builder.Services.AddDbContext<AppDbContext>(opt => opt.UseInMemoryDatabase("ImdbDb"));
 
 builder.Services.AddHttpContextAccessor();
 

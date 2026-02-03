@@ -1,5 +1,4 @@
 ﻿using FluentValidation;
-using ImdbApi.DTOs.Request.Auth;
 using ImdbApi.Models;
 
 namespace ImdbApi.Validators

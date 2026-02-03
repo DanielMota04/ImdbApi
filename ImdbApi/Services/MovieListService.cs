@@ -1,5 +1,4 @@
-﻿using ImdbApi.Data;
-using ImdbApi.DTOs.Pagination;
+﻿using ImdbApi.DTOs.Pagination;
 using ImdbApi.DTOs.Response.Movie;
 using ImdbApi.Interfaces.Repositories;
 using ImdbApi.Interfaces.Services;

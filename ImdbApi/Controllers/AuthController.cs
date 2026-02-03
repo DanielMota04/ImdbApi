@@ -19,7 +19,7 @@ namespace ImdbApi.Controllers
         public async Task<IActionResult> Register(AuthRegisterRequestDTO dto)
         {
             var user = await _service.RegisterAsync(dto);
-            if (user == null) return BadRequest("Email already in use."); // jogar pro service
+            if (user == null) return BadRequest("Email already in use.");
             return Ok(user);
         }
 
