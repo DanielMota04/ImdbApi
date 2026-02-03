@@ -1,4 +1,5 @@
-﻿using ImdbApi.DTOs.Pagination;
+﻿using FluentValidation;
+using ImdbApi.DTOs.Pagination;
 using ImdbApi.DTOs.Request.Movie;
 using ImdbApi.DTOs.Response.Movie;
 using ImdbApi.Enums;
@@ -7,6 +8,7 @@ using ImdbApi.Interfaces.Services;
 using ImdbApi.Mappers;
 using ImdbApi.Models;
 using ImdbApi.Repositories;
+using ImdbApi.Validators;
 using System.IO;
 using System.Runtime.Intrinsics.Arm;
 using System.Security.Claims;
@@ -72,7 +74,7 @@ namespace ImdbApi.Services
 
             if (order.ToString().Equals("Rating"))
             {
-                pagedMovies = query.OrderBy(m => m.Rating)
+                pagedMovies = query.OrderByDescending(m => m.Rating)
                     .Skip((paginationParams.PageNumber - 1) * paginationParams.PageSize)
                     .Take(paginationParams.PageSize)
                     .ToList();
@@ -113,15 +115,19 @@ namespace ImdbApi.Services
             return true;
         }
 
-        public async Task<double?> Vote(int movieId, double vote)
+        public async Task<double?> Vote(VoteMovieRequestDTO vote)
         {
-            var movie = await _movieRepository.FindMovieById(movieId);
+            VoteValidator validator = new VoteValidator();
+
+            var movie = await _movieRepository.FindMovieById(vote.MovieId);
             var userId = int.Parse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
             var movieList = await _movieListRepository.ListMoviesByUserId(userId);
 
             if (!await _movieListRepository.IsMovieOnUserList(userId)) return null;
 
-            movie.TotalRating += vote;
+            validator.ValidateAndThrow(vote);
+
+            movie.TotalRating += vote.Vote;
             movie.Votes += 1;
             movie.Rating = movie.TotalRating / movie.Votes;
 

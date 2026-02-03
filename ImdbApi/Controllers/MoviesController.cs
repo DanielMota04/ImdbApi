@@ -85,10 +85,10 @@ namespace ImdbApi.Controllers
 
 
         [Authorize]
-        [HttpPut("vote/{movieId}")]
-        public async Task<ActionResult> Vote(int movieId, double vote)
+        [HttpPut("vote")]
+        public async Task<ActionResult> Vote(VoteMovieRequestDTO dto)
         {
-            var value = await _service.Vote(movieId, vote);
+            var value = await _service.Vote(dto);
 
             if (value == null)
                 return BadRequest("Movie not in users list");
