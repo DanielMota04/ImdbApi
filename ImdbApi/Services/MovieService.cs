@@ -1,9 +1,11 @@
-﻿using ImdbApi.DTOs.Request.Movie;
+﻿using ImdbApi.DTOs.Pagination;
+using ImdbApi.DTOs.Request.Movie;
 using ImdbApi.DTOs.Response.Movie;
 using ImdbApi.Enums;
 using ImdbApi.Interfaces.Repositories;
 using ImdbApi.Interfaces.Services;
 using ImdbApi.Mappers;
+using ImdbApi.Models;
 using ImdbApi.Repositories;
 using System.IO;
 using System.Runtime.Intrinsics.Arm;
@@ -14,7 +16,7 @@ namespace ImdbApi.Services
     public class MovieService : IMovieService
     {
         private readonly MovieMapper _mapper;
-        private readonly IMovieRepository _movieRepository; 
+        private readonly IMovieRepository _movieRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMovieListRepository _movieListRepository;
 
@@ -36,45 +38,62 @@ namespace ImdbApi.Services
 
             if (await _movieRepository.FindMovieByTitle(title)) return null;
 
-            var movie = _mapper.CreateToEntity(title, genre, actors, director); 
+            var movie = _mapper.CreateToEntity(title, genre, actors, director);
             await _movieRepository.CreateMovie(movie);
 
             return _mapper.EntityToDetails(movie);
         }
 
-        public async Task<IEnumerable<MovieResponseDTO>> GetAllMovies(string? title, string? director, string? genre, string? actor, MovieOrderBy order)
+        public async Task<PagedResult<MovieResponseDTO>> GetAllMovies(PaginationParams paginationParams, string? title, string? director, string? genre, string? actor, MovieOrderBy order)
         {
-            var movies = await _movieRepository.GetAllMovies();
+            var allMovies = await _movieRepository.GetAllMovies();
+            var query = allMovies.AsQueryable();
 
             if (title != null)
             {
-                movies = movies.Where(m => m.Title.Contains(title));
+                query = query.Where(m => m.Title.Contains(title));
             }
             if (director != null)
             {
-                movies = movies.Where(m => m.Director.Contains(director));
+                query = query.Where(m => m.Director.Contains(director));
             }
             if (genre != null)
             {
-                movies = movies.Where(m => m.Genre.Contains(genre));
+                query = query.Where(m => m.Genre.Contains(genre));
             }
             if (actor != null)
             {
-                movies = movies.Where(m => m.Actors.Contains(actor));
+                query = query.Where(m => m.Actors.Contains(actor));
             }
+
+            var totalItems = query.Count();
+
+            List<Movie> pagedMovies = new List<Movie>();
 
             if (order.ToString().Equals("Rating"))
             {
-                movies = movies.OrderByDescending(m => m.Rating).ToList();
+                pagedMovies = query.OrderBy(m => m.Rating)
+                    .Skip((paginationParams.PageNumber - 1) * paginationParams.PageSize)
+                    .Take(paginationParams.PageSize)
+                    .ToList();
             }
             else if (order.ToString().Equals("Alphabetic"))
             {
-                movies = movies.OrderBy(m => m.Title).ToList();
+                pagedMovies = query.OrderBy(m => m.Title)
+                    .Skip((paginationParams.PageNumber - 1) * paginationParams.PageSize)
+                    .Take(paginationParams.PageSize)
+                    .ToList();
             }
 
-            var moviesDTO = movies.Select(m => _mapper.EntityToResponse(m));
+            var mmappedMovies = pagedMovies.Select(m => _mapper.EntityToResponse(m));
 
-            return moviesDTO;
+            return new PagedResult<MovieResponseDTO>
+            {
+                Items = mmappedMovies,
+                TotalItems = totalItems,
+                PageNumber = paginationParams.PageNumber,
+                PageSize = paginationParams.PageSize
+            };
         }
 
         public async Task<MovieDetailsResponseDTO> GetMovieById(int id)

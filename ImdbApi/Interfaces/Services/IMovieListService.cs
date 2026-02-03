@@ -1,4 +1,5 @@
-﻿using ImdbApi.DTOs.Response.Movie;
+﻿using ImdbApi.DTOs.Pagination;
+using ImdbApi.DTOs.Response.Movie;
 
 namespace ImdbApi.Interfaces.Services
 {
@@ -6,6 +7,6 @@ namespace ImdbApi.Interfaces.Services
     {
         public Task<MovieListResponseDTO> AddMovieToList(int movieId);
         public Task<bool> RemoveMovieFromList(int id);
-        public Task<IEnumerable<MovieDetailsResponseDTO>> GetMovieList();
+        public Task<PagedResult<MovieDetailsResponseDTO>> GetMovieList(PaginationParams paginationParams);
     }
 }

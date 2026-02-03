@@ -1,4 +1,5 @@
-﻿using ImdbApi.DTOs.Request.Movie;
+﻿using ImdbApi.DTOs.Pagination;
+using ImdbApi.DTOs.Request.Movie;
 using ImdbApi.DTOs.Response.Movie;
 using ImdbApi.Enums;
 using ImdbApi.Interfaces.Services;
@@ -22,9 +23,11 @@ namespace ImdbApi.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Movie>>> GetMovies([FromQuery] string? title, string? director, string? genre, string? actors, MovieOrderBy order)
+        public async Task<ActionResult<IEnumerable<Movie>>> GetMovies(
+            [FromQuery] PaginationParams paginationParams,
+            [FromQuery] string? title, string? director, string? genre, string? actors, MovieOrderBy order)
         {
-            var movies = await _service.GetAllMovies(title, director, genre, actors, order);
+            var movies = await _service.GetAllMovies(paginationParams, title, director, genre, actors, order);
             return Ok(movies);
         }
 
@@ -65,9 +68,9 @@ namespace ImdbApi.Controllers
 
         [Authorize]
         [HttpGet("myList")]
-        public async Task<ActionResult<IEnumerable<MovieDetailsResponseDTO>>> GetMovieList()
+        public async Task<ActionResult<IEnumerable<MovieDetailsResponseDTO>>> GetMovieList([FromQuery] PaginationParams paginationParams)
         {
-            var result = await _movieListService.GetMovieList();
+            var result = await _movieListService.GetMovieList(paginationParams);
             return Ok(result);
         }
 

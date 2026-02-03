@@ -1,4 +1,5 @@
-﻿using ImdbApi.DTOs.Request.User;
+﻿using ImdbApi.DTOs.Pagination;
+using ImdbApi.DTOs.Request.User;
 using ImdbApi.DTOs.Response.User;
 using ImdbApi.Enums;
 using ImdbApi.Interfaces.Repositories;
@@ -17,17 +18,34 @@ namespace ImdbApi.Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<UserResponse>> GetAllUsers(Roles? role)
+        public async Task<PagedResult<UserResponse>> GetAllUsers(PaginationParams paginationParams, Roles? role)
         {
-            var users = await _userRepository.GetAllUsersAsync();
-            var usersReturn = users.Where(u => u.IsActive.Equals(true));
+            var allUsers = await _userRepository.GetAllUsersAsync();
+            var query = allUsers.AsQueryable();
+
+            query = query.Where(u => u.IsActive);
 
             if (role.HasValue)
             {
-                return usersReturn.Where(u => u.Role.Equals(role)).Select(u => _mapper.ToUserResponse(u)).OrderBy(s => s.Name);
+                query = query.Where(u => u.Role.Equals(role));
             }
 
-            return usersReturn.Select(u => _mapper.ToUserResponse(u)).OrderBy(s => s.Name);
+            var totalItems = query.Count();
+
+            var pagedUsers = query.OrderBy(u => u.Name)
+                .Skip((paginationParams.PageNumber - 1) * paginationParams.PageSize)
+                .Take(paginationParams.PageSize)
+                .ToList();
+
+            var mappedUsers = pagedUsers.Select(u => _mapper.ToUserResponse(u));
+
+            return new PagedResult<UserResponse>
+            {
+                Items = mappedUsers,
+                TotalItems = totalItems,
+                PageNumber = paginationParams.PageNumber,
+                PageSize = paginationParams.PageSize
+            };
         }
 
         public async Task<UserResponse?> GetUserById(int id)

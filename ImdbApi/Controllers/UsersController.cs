@@ -1,4 +1,5 @@
-﻿using ImdbApi.DTOs.Request.User;
+﻿using ImdbApi.DTOs.Pagination;
+using ImdbApi.DTOs.Request.User;
 using ImdbApi.DTOs.Response.User;
 using ImdbApi.Enums;
 using ImdbApi.Interfaces.Services;
@@ -20,9 +21,11 @@ namespace ImdbApi.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserResponse>>> GetAllUsers([FromQuery] Roles? role)
+        public async Task<ActionResult<IEnumerable<UserResponse>>> GetAllUsers(
+            [FromQuery] PaginationParams paginationParams,
+            [FromQuery] Roles? role)
         {
-            var users = await _service.GetAllUsers(role);
+            var users = await _service.GetAllUsers(paginationParams, role);
             return Ok(users);
         }
 

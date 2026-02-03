@@ -1,4 +1,5 @@
 ﻿using ImdbApi.Data;
+using ImdbApi.DTOs.Pagination;
 using ImdbApi.DTOs.Response.Movie;
 using ImdbApi.Interfaces.Repositories;
 using ImdbApi.Interfaces.Services;
@@ -45,19 +46,31 @@ namespace ImdbApi.Services
             return _mapper.EntityToResponse(movieList, user.Name);
         }
 
-        public async Task<IEnumerable<MovieDetailsResponseDTO>> GetMovieList()
+        public async Task<PagedResult<MovieDetailsResponseDTO>> GetMovieList(PaginationParams paginationParams)
         {
             var userId = int.Parse(_httpContextAcessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            var movieList = await _movieListRepository.ListMoviesByUserId(userId);
+            var allMovieList = await _movieListRepository.ListMoviesByUserId(userId);
+
+            var query = allMovieList.AsQueryable();
+
+            var totalItems = query.Count();
+
+            var pagedMovies = query.OrderBy(ml => ml.MovieId).Skip((paginationParams.PageNumber - 1) * paginationParams.PageSize).Take(paginationParams.PageSize).ToList();
 
             var movies = new List<MovieDetailsResponseDTO>();
-            foreach (var movie in movieList)
+            foreach (var movie in pagedMovies)
             {
                 var movieDetails = await _movieService.GetMovieById(movie.MovieId);
                 movies.Add(movieDetails);
             }
 
-            return movies;
+            return new PagedResult<MovieDetailsResponseDTO>
+            {
+                Items = movies,
+                TotalItems = totalItems,
+                PageNumber = paginationParams.PageNumber,
+                PageSize = paginationParams.PageSize
+            };
         }
 
         public async Task<bool> RemoveMovieFromList(int id)
