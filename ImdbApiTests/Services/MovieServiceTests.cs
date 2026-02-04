@@ -125,5 +125,33 @@ namespace ImdbApiTests.Services
 
             _movieRepositoryMock.Verify(x => x.DeleteMovie(It.IsAny<Movie>()), Times.Never);
         }
+
+        [Fact]
+        public async Task Vote_WhenMovieIsNotVotedByUser_ReturnDouble()
+        {
+            var movieList = new MovieList
+            {
+                MovieListId = 1, 
+                UserId = 2, 
+                MovieId = 2, 
+                IsVoted = false
+            };
+
+
+        }
+
+        [Fact]
+        public async Task Vote_WhenMovieIsVotedByUser_ReturnNull()
+        {
+            var movieList = new MovieList
+            {
+                MovieListId = 1,
+                UserId = 2,
+                MovieId = 2,
+                IsVoted = false
+            };
+
+
+        }
     }
 }
