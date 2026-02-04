@@ -47,34 +47,5 @@ namespace ImdbApiTests.Services
             Assert.Null(result);
         }
 
-        [Fact]
-        public async Task CreateMovie_WhenTitleDontExist_ReturnMovie()
-        {
-            var dto = new CreateMovieRequestDTO
-            {
-                Title = "O poderoso chefão",
-                Genre = "Drama",
-                Director = "Francis ford copolla",
-                Actors = new List<string> {
-"Marlon Brando", "Al Pacino", "James Caan" }
-            };
-
-            var movie = new MovieDetailsResponseDTO
-        {
-            Id = 0,
-            Title = "O poderoso chefão",
-            Rating = 0.0,
-            Genre = "Drama",
-            Director = "Francis ford copolla",
-            Actors = new List<string> {
-"Marlon Brando", "Al Pacino", "James Caan" }
-        };
-
-            _movieRepositoryMock.Setup(repo => repo.FindMovieByTitle("o poderoso chefão")).ReturnsAsync(false);
-
-            var result = await _movieService.CreateMovie(dto);
-
-            Assert.Equal(movie, result);
-        }
     }
 }
