@@ -91,7 +91,7 @@ namespace ImdbApi.Controllers
             var value = await _service.Vote(dto);
 
             if (value == null)
-                return BadRequest("Movie not in users list");
+                return BadRequest("User already voted this movie");
 
             return Ok(value);
         }

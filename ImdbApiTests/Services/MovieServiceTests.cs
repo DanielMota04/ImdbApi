@@ -1,10 +1,9 @@
 ﻿using ImdbApi.DTOs.Request.Movie;
-using ImdbApi.DTOs.Response.Movie;
 using ImdbApi.Interfaces.Repositories;
 using ImdbApi.Mappers;
-using ImdbApi.Models;
 using ImdbApi.Services;
 using Microsoft.AspNetCore.Http;
+using Moq;
 
 
 namespace ImdbApiTests.Services
@@ -37,8 +36,10 @@ namespace ImdbApiTests.Services
                 Title = "O poderoso chefão",
                 Genre = "Drama",
                 Director = "Francis ford copolla",
-                Actors = new List<string> {
-"Marlon Brando", "Al Pacino", "James Caan" }
+                Actors = new List<string> 
+                {
+                    "Marlon Brando", "Al Pacino", "James Caan" 
+                }
             };
             _movieRepositoryMock.Setup(repo => repo.FindMovieByTitle("o poderoso chefão")).ReturnsAsync(true);
 

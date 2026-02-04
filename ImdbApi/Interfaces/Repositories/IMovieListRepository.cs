@@ -9,5 +9,7 @@ namespace ImdbApi.Interfaces.Repositories
         public Task<MovieList> FindMovieListById(int id);
         public Task<bool> RemoveMovieFromList(MovieList ml);
         public Task<bool> IsMovieOnUserList(int userId);
+        public Task<bool> UpdateIsVoted(MovieList ml);
+        public Task<MovieList?> FindMovieInListByMovieIdAndUserId(int movieId, int userId);
     }
 }

@@ -21,6 +21,11 @@ namespace ImdbApi.Repositories
             return ml;
         }
 
+        public async Task<MovieList?> FindMovieInListByMovieIdAndUserId(int movieId, int userId)
+        {
+            return await _context.MovieLists.FirstOrDefaultAsync(ml => (ml.UserId == userId) && (ml.MovieId == movieId));
+        }
+
         public async Task<MovieList?> FindMovieListById(int id)
         {
             return await _context.MovieLists.FirstOrDefaultAsync(ml => ml.MovieListId == id);
@@ -39,6 +44,15 @@ namespace ImdbApi.Repositories
         public async Task<bool> RemoveMovieFromList(MovieList ml)
         {
             _context.MovieLists.Remove(ml);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> UpdateIsVoted(MovieList ml)
+        {
+            MovieList movielist = ml;
+            movielist.IsVoted = true;
+            _context.MovieLists.Update(movielist);
             await _context.SaveChangesAsync();
             return true;
         }

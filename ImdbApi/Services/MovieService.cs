@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using ImdbApi.DTOs.Pagination;
 using ImdbApi.DTOs.Request.Movie;
 using ImdbApi.DTOs.Response.Movie;
@@ -121,15 +121,16 @@ namespace ImdbApi.Services
 
             var movie = await _movieRepository.FindMovieById(vote.MovieId);
             var userId = int.Parse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            var movieList = await _movieListRepository.ListMoviesByUserId(userId);
+            var movieList = await _movieListRepository.FindMovieInListByMovieIdAndUserId(vote.MovieId, userId);
 
-            if (!await _movieListRepository.IsMovieOnUserList(userId)) return null;
+            if (movieList.IsVoted) return null;
 
             validator.ValidateAndThrow(vote);
 
             movie.TotalRating += vote.Vote;
             movie.Votes += 1;
             movie.Rating = movie.TotalRating / movie.Votes;
+            await _movieListRepository.UpdateIsVoted(movieList);
 
             await _movieRepository.UpdateRating(movie);
 
