@@ -32,6 +32,7 @@ namespace ImdbApi.Services
 
         public async Task<MovieDetailsResponseDTO> CreateMovie(CreateMovieRequestDTO dto)
         {
+            CreateMovieValidator validator = new CreateMovieValidator();
             var title = dto.Title.Trim().Normalize();
             var genre = dto.Genre.Trim().Normalize();
             var director = dto.Director.Trim().Normalize();
@@ -39,6 +40,8 @@ namespace ImdbApi.Services
             var actors = dto.Actors.Select(a => a.Trim().Normalize()).ToList();
 
             if (await _movieRepository.FindMovieByTitle(title.ToLower())) return null;
+
+            validator.ValidateAndThrow(dto);
 
             var movie = _mapper.CreateToEntity(title, genre, actors, director);
             await _movieRepository.CreateMovie(movie);
