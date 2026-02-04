@@ -39,7 +39,7 @@ namespace ImdbApi.Controllers
             return Ok(movie);
         }
 
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> CreateMovie(CreateMovieRequestDTO dto)
         {

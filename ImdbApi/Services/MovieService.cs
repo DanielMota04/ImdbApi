@@ -38,7 +38,7 @@ namespace ImdbApi.Services
 
             var actors = dto.Actors.Select(a => a.Trim().Normalize()).ToList();
 
-            if (await _movieRepository.FindMovieByTitle(title)) return null;
+            if (await _movieRepository.FindMovieByTitle(title.ToLower())) return null;
 
             var movie = _mapper.CreateToEntity(title, genre, actors, director);
             await _movieRepository.CreateMovie(movie);
