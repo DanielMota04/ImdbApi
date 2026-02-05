@@ -1,5 +1,6 @@
 ﻿using ImdbApi.DTOs.Pagination;
 using ImdbApi.DTOs.Response.Movie;
+using ImdbApi.Exceptions;
 using ImdbApi.Interfaces.Repositories;
 using ImdbApi.Interfaces.Services;
 using ImdbApi.Mappers;
@@ -32,7 +33,7 @@ namespace ImdbApi.Services
 
             var user = await _userService.GetUserById(userId);
 
-            if (movie == null) return null;
+            if (movie == null) throw new ResourceNotFoundException("Movie not found");
             MovieList movieList = new()
             {
                 MovieId = movieId,
@@ -78,7 +79,8 @@ namespace ImdbApi.Services
 
             var userId = int.Parse(_httpContextAcessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-            if (movieList == null || movieList.UserId != userId) return false;
+            if (movieList == null) throw new ResourceNotFoundException("Movie not found.");
+            if (movieList.UserId != userId) throw new ForbiddenException("You can't remove a movie that is not in your list");
 
             await _movieListRepository.RemoveMovieFromList(movieList);
 

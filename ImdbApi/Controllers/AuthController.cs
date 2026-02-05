@@ -19,7 +19,6 @@ namespace ImdbApi.Controllers
         public async Task<IActionResult> Register(AuthRegisterRequestDTO dto)
         {
             var user = await _service.RegisterAsync(dto);
-            if (user == null) return BadRequest("Email already in use.");
             return Ok(user);
         }
 
@@ -27,10 +26,7 @@ namespace ImdbApi.Controllers
         public async Task<IActionResult> Login(AuthLoginRequestDTO dto)
         {
             var token = await _service.LoginAsync(dto);
-            if (token == null) return Unauthorized("Invalid email or password");
             return Ok(token);
         }
-
-
     }
 }

@@ -2,6 +2,7 @@ using ImdbApi.Data;
 using ImdbApi.Interfaces.Repositories;
 using ImdbApi.Interfaces.Services;
 using ImdbApi.Mappers;
+using ImdbApi.MIddlewares;
 using ImdbApi.Repositories;
 using ImdbApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -93,6 +94,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseMiddleware<GlobalErrorHandlingMiddleware>();
 
 app.UseHttpsRedirection();
 

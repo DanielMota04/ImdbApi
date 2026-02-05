@@ -35,7 +35,6 @@ namespace ImdbApi.Controllers
         public async Task<ActionResult<Movie>> GetMovie(int id)
         {
             var movie = await _service.GetMovieById(id);
-            if (movie == null) return NotFound();
             return Ok(movie);
         }
 
@@ -44,7 +43,6 @@ namespace ImdbApi.Controllers
         public async Task<IActionResult> CreateMovie(CreateMovieRequestDTO dto)
         {
             var createdMovie = await _service.CreateMovie(dto);
-            if (createdMovie == null) return Conflict("A movie with the same title already exists.");
             return CreatedAtAction(nameof(GetMovie), new { id = createdMovie.Id }, createdMovie);
         }
 
@@ -52,7 +50,6 @@ namespace ImdbApi.Controllers
         public async Task<IActionResult> DeleteMovie(int id)
         {
             var result = await _service.DeleteMovie(id);
-            if (!result) return NotFound();
             return NoContent();
         }
 
@@ -62,7 +59,6 @@ namespace ImdbApi.Controllers
         public async Task<IActionResult> AddMovieToList(int id)
         {
             var result = await _movieListService.AddMovieToList(id);
-            if (result == null) return NotFound("Movie not found.");
             return Ok(result);
         }
 
@@ -79,7 +75,6 @@ namespace ImdbApi.Controllers
         public async Task<IActionResult> RemoveMovieFromList(int id)
         {
             var result = await _movieListService.RemoveMovieFromList(id);
-            if (!result) return NotFound("Movie not found in your list.");
             return Ok(result);
         }
 
@@ -89,10 +84,6 @@ namespace ImdbApi.Controllers
         public async Task<ActionResult> Vote(VoteMovieRequestDTO dto)
         {
             var value = await _service.Vote(dto);
-
-            if (value == null)
-                return BadRequest("User already voted this movie");
-
             return Ok(value);
         }
 

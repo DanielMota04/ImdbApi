@@ -34,7 +34,6 @@ namespace ImdbApi.Controllers
         public async Task<ActionResult> UpdateUser(int id, UpdateUserRequestDTO dto)
         {
             var response = await _service.UpdateUser(id, dto);
-            if (response == null) return NotFound();
             return Ok(response);
         }
 
@@ -43,7 +42,6 @@ namespace ImdbApi.Controllers
         public async Task<ActionResult> GetUserById(int id)
         {
             var user = await _service.GetUserById(id);
-            if (user == null) return NotFound();
             return Ok(user);
         }
 
@@ -52,7 +50,6 @@ namespace ImdbApi.Controllers
         public async Task<IActionResult> DeactivateUser(int id)
         {
             var user = await _service.DeactivateUser(id);
-            if (!user) return NotFound();
             return NoContent();
         }
 

@@ -3,6 +3,7 @@ using ImdbApi.DTOs.Pagination;
 using ImdbApi.DTOs.Request.Movie;
 using ImdbApi.DTOs.Response.Movie;
 using ImdbApi.Enums;
+using ImdbApi.Exceptions;
 using ImdbApi.Interfaces.Repositories;
 using ImdbApi.Interfaces.Services;
 using ImdbApi.Mappers;
@@ -39,7 +40,7 @@ namespace ImdbApi.Services
 
             var actors = dto.Actors.Select(a => a.Trim().Normalize()).ToList();
 
-            if (await _movieRepository.FindMovieByTitle(title.ToLower())) return null;
+            if (await _movieRepository.FindMovieByTitle(title.ToLower())) throw new ConflictException("Movie name already exists.");
 
             validator.ValidateAndThrow(dto);
 
@@ -104,7 +105,7 @@ namespace ImdbApi.Services
         public async Task<MovieDetailsResponseDTO> GetMovieById(int id)
         {
             var movie = await _movieRepository.FindMovieById(id);
-            if (movie == null) return null;
+            if (movie == null) throw new ResourceNotFoundException($"Movie not found with id {id}.");
             return _mapper.EntityToDetails(movie);
         }
 
@@ -112,7 +113,7 @@ namespace ImdbApi.Services
         {
             var movie = await _movieRepository.FindMovieById(id);
 
-            if (movie == null) return false;
+            if (movie == null) throw new ResourceNotFoundException($"Movie not found with id {id}.");
             await _movieRepository.DeleteMovie(movie);
 
             return true;
@@ -126,7 +127,7 @@ namespace ImdbApi.Services
             var userId = int.Parse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
             var movieList = await _movieListRepository.FindMovieInListByMovieIdAndUserId(vote.MovieId, userId);
 
-            if (movieList.IsVoted) return null;
+            if (movieList.IsVoted) throw new ForbiddenException("You has already voted in this movie.");
 
             validator.ValidateAndThrow(vote);
 

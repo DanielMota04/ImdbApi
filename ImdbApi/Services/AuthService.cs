@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using ImdbApi.DTOs.Request.Auth;
 using ImdbApi.DTOs.Response.Auth;
+using ImdbApi.Exceptions;
 using ImdbApi.Interfaces.Repositories;
 using ImdbApi.Interfaces.Services;
 using ImdbApi.Mappers;
@@ -26,10 +27,7 @@ namespace ImdbApi.Services
 
             string normalizedEmail = dto.Email.Trim().ToLower();
 
-            if (await _userRepository.UserExistsByEmail(normalizedEmail))
-            {
-                return null;
-            }
+            if (await _userRepository.UserExistsByEmail(normalizedEmail)) throw new ConflictException("Email already in use.");
 
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
             var userEntity = _mapper.RegisterToEntity(dto, normalizedEmail, passwordHash);
@@ -46,7 +44,7 @@ namespace ImdbApi.Services
             var normalizedEmail = dto.Email.Trim().ToLower();
 
             var user = await _userRepository.FindUserByEmail(normalizedEmail);
-            if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.Password)) return null;
+            if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.Password)) throw new UnauthorizedAccessException("Invalid credentials.");
 
             return _jwtService.GenerateToken(user);
         }

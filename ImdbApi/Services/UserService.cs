@@ -2,9 +2,11 @@
 using ImdbApi.DTOs.Request.User;
 using ImdbApi.DTOs.Response.User;
 using ImdbApi.Enums;
+using ImdbApi.Exceptions;
 using ImdbApi.Interfaces.Repositories;
 using ImdbApi.Interfaces.Services;
 using ImdbApi.Mappers;
+using System.Security.Claims;
 
 namespace ImdbApi.Services
 {
@@ -12,10 +14,12 @@ namespace ImdbApi.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly UserMapper _mapper;
-        public UserService(IUserRepository userRepository, UserMapper mapper)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        public UserService(IUserRepository userRepository, UserMapper mapper, IHttpContextAccessor httpContextAccessor)
         {
             _userRepository = userRepository;
             _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<PagedResult<UserResponse>> GetAllUsers(PaginationParams paginationParams, Roles? role)
@@ -51,7 +55,7 @@ namespace ImdbApi.Services
         public async Task<UserResponse?> GetUserById(int id)
         {
             var user = await _userRepository.GetUserByIdAsync(id);
-            if (user == null) return null;
+            if (user == null) throw new ResourceNotFoundException($"User not found by id {id}.");
 
             return _mapper.ToUserResponse(user);
         }
@@ -59,7 +63,7 @@ namespace ImdbApi.Services
         public async Task<bool> DeactivateUser(int id)
         {
             var user = await _userRepository.GetUserByIdAsync(id);
-            if (user == null) return false;
+            if (user == null) throw new ResourceNotFoundException($"User not found by id {id}.");
             user.IsActive = false;
             await _userRepository.DeactivateUser(user);
 
@@ -69,7 +73,9 @@ namespace ImdbApi.Services
         public async Task<UserResponse> UpdateUser(int id, UpdateUserRequestDTO dto)
         {
             var user = await _userRepository.GetUserByIdAsync(id);
-            if (user == null) return null;
+            if (user == null) throw new ResourceNotFoundException($"User not found by id {id}.");
+            var userId = int.Parse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            if (userId != id) throw new ForbiddenException("You cannot update other users data.");
 
             if (dto.Name != "")
             {
