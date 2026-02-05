@@ -1,10 +1,12 @@
 ﻿using ImdbApi.DTOs.Request.Movie;
+using ImdbApi.Exceptions;
 using ImdbApi.Interfaces.Repositories;
 using ImdbApi.Mappers;
 using ImdbApi.Models;
 using ImdbApi.Services;
 using Microsoft.AspNetCore.Http;
 using Moq;
+using System.Security.Claims;
 
 
 namespace ImdbApiTests.Services
@@ -29,8 +31,24 @@ namespace ImdbApiTests.Services
                 (_mapper, _movieRepositoryMock.Object, _httpContextAccessorMock.Object, _movieListRepositoryMock.Object);
         }
 
+        private void MockUserLogin(string userId)
+        {
+            var context = new DefaultHttpContext();
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, userId)
+            };
+
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            var claimsPrincipal = new ClaimsPrincipal(identity);
+
+            context.User = claimsPrincipal;
+
+            _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
+        }
+
         [Fact]
-        public async Task CreateMovie_WhenTitleExists_ReturnNull()
+        public async Task CreateMovie_WhenTitleExists_ThrowException()
         {
             var movie = new CreateMovieRequestDTO
             {
@@ -44,9 +62,7 @@ namespace ImdbApiTests.Services
             };
             _movieRepositoryMock.Setup(repo => repo.FindMovieByTitle("o poderoso chefão")).ReturnsAsync(true);
 
-            var result = await _movieService.CreateMovie(movie);
-
-            Assert.Null(result);
+            await Assert.ThrowsAsync<ConflictException>(() => _movieService.CreateMovie(movie));
         }
         
         [Fact]
@@ -113,45 +129,105 @@ namespace ImdbApiTests.Services
         }
 
         [Fact]
-        public async Task DeleteMovie_WhenMovieDoesNotExists_ReturnFalse()
+        public async Task DeleteMovie_WhenMovieDoesNotExists_ThrowException()
         {
             int movieId = 99;
 
             _movieRepositoryMock.Setup(repo => repo.FindMovieById(movieId)).ReturnsAsync((ImdbApi.Models.Movie)null);
 
-            var result = await _movieService.DeleteMovie(movieId);
-
-            Assert.False(result);
+            await Assert.ThrowsAsync<ResourceNotFoundException>(() => _movieService.DeleteMovie(movieId));
 
             _movieRepositoryMock.Verify(x => x.DeleteMovie(It.IsAny<Movie>()), Times.Never);
         }
 
         [Fact]
-        public async Task Vote_WhenMovieIsNotVotedByUser_ReturnDouble()
+        public async Task Vote_WhenUserHasNotVotedYet_ShouldCalculateAndReturnRating()
         {
-            var movieList = new MovieList
+            int userId = 5;
+            int movieId = 10;
+            double vote = 4.0;
+            var voteDto = new VoteMovieRequestDTO
             {
-                MovieListId = 1, 
-                UserId = 2, 
-                MovieId = 2, 
-                IsVoted = false
+                MovieId = movieId,
+                Vote = vote
             };
 
+            MockUserLogin(userId.ToString());
 
-        }
+            var movie = new Movie
+            {
+                Id = movieId,
+                Title = "Clube da luta",
+                Rating = 0,
+                Genre = "Ação",
+                Director = "David Fincher",
+                Actors = new List<string>{
+                    "Brad pitt", "Edward Norton"
+                }
+            };
 
-        [Fact]
-        public async Task Vote_WhenMovieIsVotedByUser_ReturnNull()
-        {
+            _movieRepositoryMock.Setup(x => x.FindMovieById(movieId)).ReturnsAsync(movie);
+
             var movieList = new MovieList
             {
                 MovieListId = 1,
-                UserId = 2,
-                MovieId = 2,
+                MovieId = movieId,
+                UserId = userId,
                 IsVoted = false
             };
 
+            _movieListRepositoryMock.Setup(x => x.FindMovieInListByMovieIdAndUserId(movieId, userId)).ReturnsAsync(movieList);
 
+            var result = await _movieService.Vote(voteDto);
+
+            Assert.NotNull(result);
+            Assert.Equal(4.0, result);
+
+            _movieRepositoryMock.Verify(x => x.UpdateRating(It.IsAny<Movie>()), Times.Once());
+            _movieListRepositoryMock.Verify(x => x.UpdateIsVoted(It.IsAny<MovieList>()), Times.Once());
+        }
+
+        [Fact]
+        public async Task Vote_WhenUserAlreadyVoted_ThrowException()
+        {
+            int userId = 5;
+            int movieId = 10;
+            double vote = 4.0;
+            var voteDto = new VoteMovieRequestDTO
+            {
+                MovieId = movieId,
+                Vote = vote
+            };
+
+            MockUserLogin(userId.ToString());
+
+            var movie = new Movie
+            {
+                Id = movieId,
+                Title = "Clube da luta",
+                Rating = 0,
+                Genre = "Ação",
+                Director = "David Fincher",
+                Actors = new List<string>{
+                    "Brad pitt", "Edward Norton"
+                }
+            };
+
+            _movieRepositoryMock.Setup(x => x.FindMovieById(movieId)).ReturnsAsync(movie);
+
+            var movieList = new MovieList
+            {
+                MovieListId = 1,
+                MovieId = movieId,
+                UserId = userId,
+                IsVoted = true
+            };
+
+            _movieListRepositoryMock.Setup(x => x.FindMovieInListByMovieIdAndUserId(movieId, userId)).ReturnsAsync(movieList);
+
+            await Assert.ThrowsAsync<ForbiddenException>(() => _movieService.Vote(voteDto));
+
+            _movieRepositoryMock.Verify(x => x.UpdateRating(It.IsAny<Movie>()), Times.Never());
         }
     }
 }
