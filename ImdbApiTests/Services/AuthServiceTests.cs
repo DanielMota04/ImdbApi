@@ -6,11 +6,6 @@ using ImdbApi.Interfaces.Services;
 using ImdbApi.Mappers;
 using ImdbApi.Models;
 using ImdbApi.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ImdbApiTests.Services
 {
@@ -76,13 +71,95 @@ namespace ImdbApiTests.Services
 
             var result = await _authService.RegisterAsync(dto);
             Assert.NotNull(result);
-            Assert.Equal(/*user.Id*/ 0, result.Id); // verificar por que 0 e nao user.id
+            Assert.Equal(0, result.Id);
             Assert.Equal(user.Name, result.Name);
             Assert.Equal(user.Email, result.Email);
             Assert.Equal(user.Role, result.Role);
 
             _userRepositoryMock.Verify(x => x.CreateUser(It.IsAny<User>()), Times.Once);
+        }
 
+        [Fact]
+        public async Task LoginAsync_WhenUserNotFound_ThrowException()
+        {
+            AuthLoginRequestDTO dto = new()
+            {
+                Email = "user@email.com",
+                Password = "123456"
+            };
+
+            _userRepositoryMock.Setup(repo => repo.FindUserByEmail(dto.Email)).ReturnsAsync((User)null);
+
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _authService.LoginAsync(dto));
+
+            _jwtServiceMock.Verify(x => x.GenerateToken(It.IsAny<User>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task LoginAsync_WhenPasswordIsIncorrect_ThrowException()
+        {
+            int userId = 1;
+
+            AuthLoginRequestDTO dto = new()
+            {
+                Email = "user@email.com",
+                Password = "123456"
+            };
+
+            string hashedPassword = BCrypt.Net.BCrypt.HashPassword("password");
+
+            User user = new()
+            {
+                Id = userId,
+                Name = "username",
+                Email = "user@email.com",
+                Password = hashedPassword,
+                Role = Roles.Admin,
+                IsActive = false
+            };
+
+            _userRepositoryMock.Setup(repo => repo.FindUserByEmail(dto.Email)).ReturnsAsync(user);
+
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _authService.LoginAsync(dto));
+
+            _jwtServiceMock.Verify(x => x.GenerateToken(It.IsAny<User>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task LoginAsync_WhenCredentialsAreValid_ReturnToken()
+        {
+            int userId = 1;
+            string password = "123456";
+
+            AuthLoginRequestDTO dto = new()
+            {
+                Email = "user@email.com",
+                Password = password
+            };
+
+            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
+
+            string token = "returnToken";
+
+            User user = new()
+            {
+                Id = userId,
+                Name = "username",
+                Email = "user@email.com",
+                Password = hashedPassword,
+                Role = Roles.Admin,
+                IsActive = true
+            };
+
+            _userRepositoryMock.Setup(repo => repo.FindUserByEmail(dto.Email)).ReturnsAsync(user);
+            _jwtServiceMock.Setup(service => service.GenerateToken(user)).Returns(token);
+
+            var result = await _authService.LoginAsync(dto);
+
+            Assert.NotNull(result);
+            Assert.Equal(token, result);
+
+            _jwtServiceMock.Verify(x => x.GenerateToken(It.IsAny<User>()), Times.Once);
         }
     }
 }

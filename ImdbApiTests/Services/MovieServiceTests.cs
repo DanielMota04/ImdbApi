@@ -5,7 +5,6 @@ using ImdbApi.Mappers;
 using ImdbApi.Models;
 using ImdbApi.Services;
 using Microsoft.AspNetCore.Http;
-using Moq;
 using System.Security.Claims;
 
 
@@ -99,7 +98,7 @@ namespace ImdbApiTests.Services
             var result = await _movieService.CreateMovie(movie);
 
             Assert.NotNull(result);
-            Assert.Equal(0, result.Id); // verificar por que 0 e não 1
+            Assert.Equal(0, result.Id);
             Assert.Equal("O poderoso chefão", result.Title);
 
             _movieRepositoryMock.Verify(x => x.CreateMovie(It.IsAny<Movie>()), Times.Once);

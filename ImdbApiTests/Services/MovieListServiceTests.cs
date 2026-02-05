@@ -116,7 +116,7 @@ namespace ImdbApiTests.Services
             var result = await _movieListService.AddMovieToList(movieId);
 
             Assert.NotNull(result);
-            Assert.Equal(0, result.MovieListId); // verificar por que 0 e nao 1
+            Assert.Equal(0, result.MovieListId);
             Assert.Equal(movieId, result.MovieId);
             Assert.Equal(user.Name, result.Username);
 

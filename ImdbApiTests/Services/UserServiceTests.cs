@@ -1,6 +1,4 @@
-﻿
-
-using ImdbApi.DTOs.Request.User;
+﻿using ImdbApi.DTOs.Request.User;
 using ImdbApi.DTOs.Response.User;
 using ImdbApi.Enums;
 using ImdbApi.Exceptions;
