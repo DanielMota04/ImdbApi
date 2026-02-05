@@ -70,6 +70,17 @@ namespace ImdbApi.Services
             return true;
         }
 
+        public async Task<bool> DeactivateMe()
+        {
+            var userId = int.Parse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            if (user == null) throw new ResourceNotFoundException($"User not found by id {userId}.");
+            user.IsActive = false;
+            await _userRepository.DeactivateUser(user);
+
+            return true;
+        }
+
         public async Task<UserResponse> UpdateUser(int id, UpdateUserRequestDTO dto)
         {
             var user = await _userRepository.GetUserByIdAsync(id);

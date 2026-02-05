@@ -49,7 +49,15 @@ namespace ImdbApi.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeactivateUser(int id)
         {
-            var user = await _service.DeactivateUser(id);
+            await _service.DeactivateUser(id);
+            return NoContent();
+        }
+
+        [Authorize]
+        [HttpDelete("/me")]
+        public async Task<IActionResult> DeactivateMe()
+        {
+            await _service.DeactivateMe();
             return NoContent();
         }
 
