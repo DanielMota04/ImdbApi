@@ -74,6 +74,7 @@ namespace ImdbApi.Services
         {
             var user = await _userRepository.GetUserByIdAsync(id);
             if (user == null) throw new ResourceNotFoundException($"User not found by id {id}.");
+
             var userId = int.Parse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
             if (userId != id) throw new ForbiddenException("You cannot update other users data.");
 

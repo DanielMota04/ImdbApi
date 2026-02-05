@@ -133,7 +133,7 @@ namespace ImdbApiTests.Services
         {
             int movieId = 99;
 
-            _movieRepositoryMock.Setup(repo => repo.FindMovieById(movieId)).ReturnsAsync((ImdbApi.Models.Movie)null);
+            _movieRepositoryMock.Setup(repo => repo.FindMovieById(movieId)).ReturnsAsync((Movie)null);
 
             await Assert.ThrowsAsync<ResourceNotFoundException>(() => _movieService.DeleteMovie(movieId));
 
