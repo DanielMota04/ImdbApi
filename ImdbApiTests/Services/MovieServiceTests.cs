@@ -63,6 +63,8 @@ namespace ImdbApiTests.Services
             _movieRepositoryMock.Setup(repo => repo.FindMovieByTitle("o poderoso chefão")).ReturnsAsync(true);
 
             await Assert.ThrowsAsync<ConflictException>(() => _movieService.CreateMovie(movie));
+
+            _movieRepositoryMock.Verify(x => x.CreateMovie(It.IsAny<Movie>()), Times.Never);
         }
         
         [Fact]
@@ -99,6 +101,8 @@ namespace ImdbApiTests.Services
             Assert.NotNull(result);
             Assert.Equal(0, result.Id); // verificar por que 0 e não 1
             Assert.Equal("O poderoso chefão", result.Title);
+
+            _movieRepositoryMock.Verify(x => x.CreateMovie(It.IsAny<Movie>()), Times.Once);
         }
 
         [Fact]
