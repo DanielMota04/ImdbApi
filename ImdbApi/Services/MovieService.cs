@@ -8,10 +8,7 @@ using ImdbApi.Interfaces.Repositories;
 using ImdbApi.Interfaces.Services;
 using ImdbApi.Mappers;
 using ImdbApi.Models;
-using ImdbApi.Repositories;
 using ImdbApi.Validators;
-using System.IO;
-using System.Runtime.Intrinsics.Arm;
 using System.Security.Claims;
 
 namespace ImdbApi.Services

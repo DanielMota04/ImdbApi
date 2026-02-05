@@ -1,5 +1,4 @@
 ﻿using ImdbApi.Enums;
-using ImdbApi.Models;
 
 namespace ImdbApi.DTOs.Request.Auth
 {
