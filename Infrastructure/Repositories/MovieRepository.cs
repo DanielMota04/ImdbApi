@@ -1,9 +1,9 @@
-﻿using ImdbApi.Data;
-using ImdbApi.Interfaces.Repositories;
-using ImdbApi.Models;
+﻿using Domain.Interface.Repositories;
+using Domain.Models;
+using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace ImdbApi.Repositories
+namespace Infrastructure.Repositories
 {
     public class MovieRepository : IMovieRepository
     {

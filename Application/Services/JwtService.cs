@@ -1,12 +1,12 @@
-﻿using ImdbApi.Interfaces.Services;
-using ImdbApi.Models;
+﻿using Application.Interfaces;
+using Domain.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace ImdbApi.Services
+namespace Application.Services
 {
     public class JwtService : IJwtService
     {

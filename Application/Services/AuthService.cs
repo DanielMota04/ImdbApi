@@ -1,13 +1,13 @@
-﻿using FluentValidation;
-using ImdbApi.DTOs.Request.Auth;
-using ImdbApi.DTOs.Response.Auth;
-using ImdbApi.Exceptions;
-using ImdbApi.Interfaces.Repositories;
-using ImdbApi.Interfaces.Services;
-using ImdbApi.Mappers;
-using ImdbApi.Validators;
+﻿using Application.DTOs.Request.Auth;
+using Application.DTOs.Response.Auth;
+using Application.Interfaces;
+using Application.Mappers;
+using Application.Validators;
+using Domain.Interface.Repositories;
+using FluentValidation;
+using Domain.Exceptions;
 
-namespace ImdbApi.Services
+namespace Application.Services
 {
     public class AuthService : IAuthService
     {

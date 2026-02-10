@@ -1,13 +1,13 @@
-﻿using ImdbApi.DTOs.Pagination;
-using ImdbApi.DTOs.Request.Movie;
-using ImdbApi.DTOs.Response.Movie;
-using ImdbApi.Enums;
-using ImdbApi.Interfaces.Services;
-using ImdbApi.Models;
+﻿using Application.DTOs.Pagination;
+using Application.DTOs.Request.Movie;
+using Application.DTOs.Response.Movie;
+using Application.Interfaces;
+using Domain.Enums;
+using Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ImdbApi.Controllers
+namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

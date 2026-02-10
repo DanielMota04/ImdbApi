@@ -1,9 +1,9 @@
-﻿using ImdbApi.Data;
-using ImdbApi.Interfaces.Repositories;
-using ImdbApi.Models;
+﻿using Domain.Interface.Repositories;
+using Domain.Models;
+using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace ImdbApi.Repositories
+namespace Infrastructure.Repositories
 {
     public class MovieListRepository : IMovieListRepository
     {
@@ -23,7 +23,7 @@ namespace ImdbApi.Repositories
 
         public async Task<MovieList?> FindMovieInListByMovieIdAndUserId(int movieId, int userId)
         {
-            return await _context.MovieLists.FirstOrDefaultAsync(ml => (ml.UserId == userId) && (ml.MovieId == movieId));
+            return await _context.MovieLists.FirstOrDefaultAsync(ml => ml.UserId == userId && ml.MovieId == movieId);
         }
 
         public async Task<MovieList?> FindMovieListById(int id)

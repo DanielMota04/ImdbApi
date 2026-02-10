@@ -1,11 +1,9 @@
-﻿using ImdbApi.Enums;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using Domain.Enums;
 
-namespace ImdbApi.Models
+namespace Domain.Models
 {
     public class User
     {
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public required string Name { get; set; }
         public required string Email { get; set; }

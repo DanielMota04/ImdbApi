@@ -1,7 +1,7 @@
-﻿using ImdbApi.Models;
+﻿using Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace ImdbApi.Data
+namespace Infrastructure.Data
 {
     public class AppDbContext : DbContext
     {

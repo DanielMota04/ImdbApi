@@ -1,7 +1,7 @@
-﻿using FluentValidation;
-using ImdbApi.Models;
+﻿using Domain.Models;
+using FluentValidation;
 
-namespace ImdbApi.Validators
+namespace Application.Validators
 {
     public class RegisterValidator : AbstractValidator<User>
     {

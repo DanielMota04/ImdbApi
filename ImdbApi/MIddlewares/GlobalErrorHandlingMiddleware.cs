@@ -1,9 +1,9 @@
-﻿using ImdbApi.DTOs.Response.Exceptions;
-using ImdbApi.Exceptions;
+﻿using Domain.Exceptions;
+using Application.DTOs.Response.Exceptions;
 using System.Net;
 using System.Text.Json;
 
-namespace ImdbApi.MIddlewares
+namespace Api.Middlewares
 {
     public class GlobalErrorHandlingMiddleware
     {

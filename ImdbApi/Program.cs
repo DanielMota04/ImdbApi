@@ -1,10 +1,10 @@
-using ImdbApi.Data;
-using ImdbApi.Interfaces.Repositories;
-using ImdbApi.Interfaces.Services;
-using ImdbApi.Mappers;
-using ImdbApi.MIddlewares;
-using ImdbApi.Repositories;
-using ImdbApi.Services;
+using Api.Middlewares;
+using Application.Interfaces;
+using Application.Mappers;
+using Application.Services;
+using Domain.Interface.Repositories;
+using Infrastructure.Data;
+using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;

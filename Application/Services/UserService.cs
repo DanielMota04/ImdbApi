@@ -1,15 +1,15 @@
-﻿using ImdbApi.DTOs.Pagination;
-using ImdbApi.DTOs.Request.User;
-using ImdbApi.DTOs.Response.User;
-using ImdbApi.Enums;
-using ImdbApi.Exceptions;
-using ImdbApi.Interfaces.Repositories;
-using ImdbApi.Interfaces.Services;
-using ImdbApi.Mappers;
+﻿using Application.DTOs.Pagination;
+using Application.DTOs.Request.User;
+using Application.DTOs.Response.User;
+using Application.Interfaces;
+using Application.Mappers;
+using Domain.Enums;
+using Domain.Exceptions;
+using Domain.Interface.Repositories;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
-namespace ImdbApi.Services
+namespace Application.Services
 {
     public class UserService : IUserService
     {

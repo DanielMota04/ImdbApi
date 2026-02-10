@@ -1,8 +1,8 @@
-﻿using ImdbApi.DTOs.Request.Auth;
-using ImdbApi.Interfaces.Services;
+﻿using Application.DTOs.Request.Auth;
+using Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ImdbApi.Controllers
+namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

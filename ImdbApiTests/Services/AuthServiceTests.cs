@@ -1,11 +1,11 @@
-﻿using ImdbApi.DTOs.Request.Auth;
-using ImdbApi.Enums;
-using ImdbApi.Exceptions;
-using ImdbApi.Interfaces.Repositories;
-using ImdbApi.Interfaces.Services;
-using ImdbApi.Mappers;
-using ImdbApi.Models;
-using ImdbApi.Services;
+﻿using Application.DTOs.Request.Auth;
+using Application.Interfaces;
+using Application.Mappers;
+using Application.Services;
+using Domain.Enums;
+using Domain.Exceptions;
+using Domain.Interface.Repositories;
+using Domain.Models;
 
 namespace ImdbApiTests.Services
 {

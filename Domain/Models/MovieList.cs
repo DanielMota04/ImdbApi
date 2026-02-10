@@ -1,4 +1,4 @@
-﻿namespace ImdbApi.Models
+﻿namespace Domain.Models
 {
     public class MovieList
     {

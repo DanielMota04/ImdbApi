@@ -1,7 +1,7 @@
-﻿using FluentValidation;
-using ImdbApi.DTOs.Request.Movie;
+﻿using Application.DTOs.Request.Movie;
+using FluentValidation;
 
-namespace ImdbApi.Validators
+namespace Application.Validators
 {
     public class VoteValidator : AbstractValidator<VoteMovieRequestDTO>
     {

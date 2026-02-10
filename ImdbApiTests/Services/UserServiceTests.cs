@@ -1,10 +1,10 @@
-﻿using ImdbApi.DTOs.Request.User;
-using ImdbApi.Enums;
-using ImdbApi.Exceptions;
-using ImdbApi.Interfaces.Repositories;
-using ImdbApi.Mappers;
-using ImdbApi.Models;
-using ImdbApi.Services;
+﻿using Application.DTOs.Request.User;
+using Application.Mappers;
+using Application.Services;
+using Domain.Enums;
+using Domain.Exceptions;
+using Domain.Interface.Repositories;
+using Domain.Models;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 

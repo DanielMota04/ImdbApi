@@ -1,12 +1,12 @@
-﻿using ImdbApi.DTOs.Pagination;
-using ImdbApi.DTOs.Request.User;
-using ImdbApi.DTOs.Response.User;
-using ImdbApi.Enums;
-using ImdbApi.Interfaces.Services;
+﻿using Application.DTOs.Pagination;
+using Application.DTOs.Request.User;
+using Application.DTOs.Response.User;
+using Application.Interfaces;
+using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ImdbApi.Controllers
+namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

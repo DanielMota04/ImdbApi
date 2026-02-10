@@ -1,14 +1,14 @@
-﻿using ImdbApi.DTOs.Pagination;
-using ImdbApi.DTOs.Response.Movie;
-using ImdbApi.Exceptions;
-using ImdbApi.Interfaces.Repositories;
-using ImdbApi.Interfaces.Services;
-using ImdbApi.Mappers;
-using ImdbApi.Models;
+﻿using Application.DTOs.Pagination;
+using Application.DTOs.Response.Movie;
+using Application.Interfaces;
+using Application.Mappers;
+using Domain.Interface.Repositories;
+using Domain.Models;
+using Domain.Exceptions;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
-namespace ImdbApi.Services
+namespace Application.Services
 {
     public class MovieListService : IMovieListService
     {
