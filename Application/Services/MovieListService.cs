@@ -5,6 +5,7 @@ using ImdbApi.Interfaces.Repositories;
 using ImdbApi.Interfaces.Services;
 using ImdbApi.Mappers;
 using ImdbApi.Models;
+using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
 namespace ImdbApi.Services

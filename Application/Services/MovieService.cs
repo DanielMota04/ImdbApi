@@ -9,6 +9,7 @@ using ImdbApi.Interfaces.Services;
 using ImdbApi.Mappers;
 using ImdbApi.Models;
 using ImdbApi.Validators;
+using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
 namespace ImdbApi.Services
