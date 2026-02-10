@@ -1,12 +1,7 @@
 using Api.Middlewares;
-using Application.Interfaces;
-using Application.Mappers;
-using Application.Services;
-using Domain.Interface.Repositories;
-using Infrastructure.Data;
-using Infrastructure.Repositories;
+using Application;
+using Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -47,24 +42,10 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddHttpContextAccessor();
-
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IJwtService, JwtService>();
-builder.Services.AddScoped<IMovieService, MovieService>();
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IMovieListService, MovieListService>();
-
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IMovieRepository, MovieRepository>();
-builder.Services.AddScoped<IMovieListRepository, MovieListRepository>();
-
-builder.Services.AddScoped<UserMapper>();
-builder.Services.AddScoped<AuthMapper>();
-builder.Services.AddScoped<MovieMapper>();
-builder.Services.AddScoped<MovieListMapper>();
 
 builder.Services.AddControllers().AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); }); ;
 
