@@ -17,13 +17,11 @@ namespace Application.Services
     public class MovieService : IMovieService
     {
         private readonly IMovieRepository _movieRepository;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMovieListRepository _movieListRepository;
 
-        public MovieService(IMovieRepository movieRepository, IHttpContextAccessor httpContextAccessor, IMovieListRepository movieListRepository)
+        public MovieService(IMovieRepository movieRepository, IMovieListRepository movieListRepository)
         {
             _movieRepository = movieRepository;
-            _httpContextAccessor = httpContextAccessor;
             _movieListRepository = movieListRepository;
         }
 
@@ -115,12 +113,11 @@ namespace Application.Services
             return true;
         }
 
-        public async Task<double?> Vote(VoteMovieRequestDTO vote)
+        public async Task<double?> Vote(VoteMovieRequestDTO vote, int userId)
         {
             VoteValidator validator = new VoteValidator();
 
             var movie = await _movieRepository.FindMovieById(vote.MovieId);
-            var userId = int.Parse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)!.Value); // mover para o controller
             var movieList = await _movieListRepository.FindMovieInListByMovieIdAndUserId(vote.MovieId, userId);
 
             if (movieList.IsVoted) throw new ForbiddenException("You has already voted in this movie.");

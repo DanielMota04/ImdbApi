@@ -11,6 +11,6 @@ namespace Application.Interfaces
         public Task<PagedResult<MovieResponseDTO>> GetAllMovies(PaginationParams paginationParams, string? title, string? director, string? genre, string? actors, MovieOrderBy order);
         public Task<MovieDetailsResponseDTO> CreateMovie(CreateMovieRequestDTO dto);
         public Task<bool> DeleteMovie(int id);
-        public Task<double?> Vote(VoteMovieRequestDTO vote);
+        public Task<double?> Vote(VoteMovieRequestDTO vote, int userId);
     }
 }

@@ -5,6 +5,7 @@ using Application.Interfaces;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Api.Controllers
 {
@@ -13,10 +14,12 @@ namespace Api.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUserService _service;
+        private readonly IHttpContextAccessor _httpContextAcessor;
 
-        public UsersController(IUserService service)
+        public UsersController(IUserService service, IHttpContextAccessor httpContextAcessor)
         {
             _service = service;
+            _httpContextAcessor = httpContextAcessor;
         }
 
         [Authorize(Roles = "Admin")]
@@ -33,7 +36,8 @@ namespace Api.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateUser(int id, UpdateUserRequestDTO dto)
         {
-            var response = await _service.UpdateUser(id, dto);
+            var loggedUser = int.Parse(_httpContextAcessor.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var response = await _service.UpdateUser(id, dto, loggedUser);
             return Ok(response);
         }
 
@@ -57,7 +61,8 @@ namespace Api.Controllers
         [HttpDelete("/me")]
         public async Task<IActionResult> DeactivateMe()
         {
-            await _service.DeactivateMe();
+            var userId = int.Parse(_httpContextAcessor.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            await _service.DeactivateMe(userId);
             return NoContent();
         }
 

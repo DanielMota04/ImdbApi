@@ -43,7 +43,7 @@ namespace Application.Services
             var normalizedEmail = dto.Email.Trim().ToLower();
 
             var user = await _userRepository.FindUserByEmail(normalizedEmail);
-            if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.Password)) throw new UnauthorizedAccessException("Invalid credentials.");
+            if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.Password)) throw new UnauthorizedAccessException("Invalid credentials."); // reslver esse if
 
             return _jwtService.GenerateToken(user);
         }

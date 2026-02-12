@@ -15,20 +15,17 @@ namespace Application.Services
         private readonly IMovieService _movieService;
         private readonly IUserService _userService;
         private readonly IMovieListRepository _movieListRepository;
-        private readonly IHttpContextAccessor _httpContextAcessor;
 
-        public MovieListService(IMovieService movieService, IUserService userService, IMovieListRepository movieListRepository, IHttpContextAccessor httpContextAcessor)
+        public MovieListService(IMovieService movieService, IUserService userService, IMovieListRepository movieListRepository)
         {
             _movieService = movieService;
             _userService = userService;
             _movieListRepository = movieListRepository;
-            _httpContextAcessor = httpContextAcessor;
         }
 
-        public async Task<MovieListResponseDTO> AddMovieToList(int movieId)
+        public async Task<MovieListResponseDTO> AddMovieToList(int movieId, int userId)
         {
             var movie = await _movieService.GetMovieById(movieId);
-            var userId = int.Parse(_httpContextAcessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)!.Value); // mover para o controller
 
             var user = await _userService.GetUserById(userId);
 
@@ -45,9 +42,8 @@ namespace Application.Services
             return MovieListMapper.EntityToResponse(movieList, user.Name);
         }
 
-        public async Task<PagedResult<MovieDetailsResponseDTO>> GetMovieList(PaginationParams paginationParams)
+        public async Task<PagedResult<MovieDetailsResponseDTO>> GetMovieList(PaginationParams paginationParams, int userId)
         {
-            var userId = int.Parse(_httpContextAcessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)!.Value); // mover para o controller
             var allMovieList = await _movieListRepository.ListMoviesByUserId(userId);
 
             var query = allMovieList.AsQueryable();
@@ -72,11 +68,9 @@ namespace Application.Services
             };
         }
 
-        public async Task<bool> RemoveMovieFromList(int id)
+        public async Task<bool> RemoveMovieFromList(int id, int userId)
         {
             var movieList = await _movieListRepository.FindMovieListById(id);
-
-            var userId = int.Parse(_httpContextAcessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)!.Value); // mover para o controller
 
             if (movieList == null) throw new ResourceNotFoundException("Movie not found.");
             if (movieList.UserId != userId) throw new ForbiddenException("You can't remove a movie that is not in your list");

@@ -14,11 +14,9 @@ namespace Application.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        public UserService(IUserRepository userRepository, IHttpContextAccessor httpContextAccessor)
+        public UserService(IUserRepository userRepository)
         {
             _userRepository = userRepository;
-            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<PagedResult<UserResponse>> GetAllUsers(PaginationParams paginationParams, Roles? role)
@@ -69,9 +67,8 @@ namespace Application.Services
             return true;
         }
 
-        public async Task<bool> DeactivateMe()
+        public async Task<bool> DeactivateMe(int userId)
         {
-            var userId = int.Parse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)!.Value); // mover para o controller
             var user = await _userRepository.GetUserByIdAsync(userId);
             if (user == null) throw new ResourceNotFoundException($"User not found by id {userId}.");
             user.IsActive = false;
@@ -80,13 +77,12 @@ namespace Application.Services
             return true;
         }
 
-        public async Task<UserResponse> UpdateUser(int id, UpdateUserRequestDTO dto)
+        public async Task<UserResponse> UpdateUser(int id, UpdateUserRequestDTO dto, int loggedUser)
         {
             var user = await _userRepository.GetUserByIdAsync(id);
             if (user == null) throw new ResourceNotFoundException($"User not found by id {id}.");
 
-            var userId = int.Parse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)!.Value); // mover para o controller
-            if (userId != id) throw new ForbiddenException("You cannot update other users data.");
+            if (loggedUser != id) throw new ForbiddenException("You cannot update other users data.");
 
             if (dto.Name != "")
             {

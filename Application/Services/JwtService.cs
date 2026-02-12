@@ -29,7 +29,7 @@ namespace Application.Services
                     new Claim(ClaimTypes.Email, user.Email),
                     new Claim(ClaimTypes.Role, user.Role.ToString())
                 ]),
-                Expires = DateTime.UtcNow.AddHours(6),
+                Expires = DateTime.UtcNow.AddHours(1), // add refresh
                 SigningCredentials = credentials
             };
             var token = handler.CreateToken(tokenDescriptor);
