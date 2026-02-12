@@ -49,7 +49,7 @@ namespace Api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteMovie(int id)
         {
-            var result = await _service.DeleteMovie(id);
+            await _service.DeleteMovie(id);
             return NoContent();
         }
 

@@ -1,5 +1,6 @@
 ﻿using Application.DTOs.Request.Auth;
 using Application.DTOs.Response.Auth;
+using FluentResults;
 
 namespace Application.Interfaces
 {

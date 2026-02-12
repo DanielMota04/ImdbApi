@@ -5,7 +5,7 @@ namespace Application.Mappers
 {
     public class MovieMapper
     {
-        public Movie CreateToEntity(string title, string genre, List<string> actors, string director)
+        public static Movie CreateToEntity(string title, string genre, List<string> actors, string director)
         {
             Movie movie = new()
             {
@@ -19,7 +19,7 @@ namespace Application.Mappers
             return movie;
         }
 
-        public MovieDetailsResponseDTO EntityToDetails(Movie movie)
+        public static MovieDetailsResponseDTO EntityToDetails(Movie movie)
         {
             MovieDetailsResponseDTO dto = new()
             {
@@ -34,7 +34,7 @@ namespace Application.Mappers
             return dto;
         }
 
-        public MovieResponseDTO EntityToResponse(Movie movie)
+        public static MovieResponseDTO EntityToResponse(Movie movie)
         {
             MovieResponseDTO dto = new()
             {

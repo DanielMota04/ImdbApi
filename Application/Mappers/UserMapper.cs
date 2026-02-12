@@ -7,7 +7,7 @@ namespace Application.Mappers
 {
     public class UserMapper
     {
-        public UserResponse ToUserResponseDTO(User entity)
+        public static UserResponse ToUserResponseDTO(User entity)
         {
             UserResponse dto = new()
             {
@@ -19,7 +19,7 @@ namespace Application.Mappers
             return dto;
         }
 
-        public UserResponse ToUserResponse(User entity)
+        public static UserResponse ToUserResponse(User entity)
         {
             UserResponse dto = new()
             {
@@ -30,7 +30,7 @@ namespace Application.Mappers
             return dto;
         }
 
-        public User RegisterToEntity(AuthRegisterRequestDTO dto, int id)
+        public static User RegisterToEntity(AuthRegisterRequestDTO dto, int id)
         {
             User entity = new()
             {
@@ -44,7 +44,7 @@ namespace Application.Mappers
             return entity;
         }
 
-        public AuthResponseDTO ToAuthResponseDTO(User entity)
+        public static AuthResponseDTO ToAuthResponseDTO(User entity)
         {
             AuthResponseDTO dto = new()
             {

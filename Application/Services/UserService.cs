@@ -14,12 +14,10 @@ namespace Application.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
-        private readonly UserMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public UserService(IUserRepository userRepository, UserMapper mapper, IHttpContextAccessor httpContextAccessor)
+        public UserService(IUserRepository userRepository, IHttpContextAccessor httpContextAccessor)
         {
             _userRepository = userRepository;
-            _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
         }
 
@@ -42,7 +40,7 @@ namespace Application.Services
                 .Take(paginationParams.PageSize)
                 .ToList();
 
-            var mappedUsers = pagedUsers.Select(u => _mapper.ToUserResponse(u));
+            var mappedUsers = pagedUsers.Select(u => UserMapper.ToUserResponse(u));
 
             return new PagedResult<UserResponse>
             {
@@ -58,7 +56,7 @@ namespace Application.Services
             var user = await _userRepository.GetUserByIdAsync(id);
             if (user == null) throw new ResourceNotFoundException($"User not found by id {id}.");
 
-            return _mapper.ToUserResponse(user);
+            return UserMapper.ToUserResponse(user);
         }
 
         public async Task<bool> DeactivateUser(int id)
@@ -73,7 +71,7 @@ namespace Application.Services
 
         public async Task<bool> DeactivateMe()
         {
-            var userId = int.Parse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var userId = int.Parse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)!.Value); // mover para o controller
             var user = await _userRepository.GetUserByIdAsync(userId);
             if (user == null) throw new ResourceNotFoundException($"User not found by id {userId}.");
             user.IsActive = false;
@@ -87,7 +85,7 @@ namespace Application.Services
             var user = await _userRepository.GetUserByIdAsync(id);
             if (user == null) throw new ResourceNotFoundException($"User not found by id {id}.");
 
-            var userId = int.Parse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var userId = int.Parse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)!.Value); // mover para o controller
             if (userId != id) throw new ForbiddenException("You cannot update other users data.");
 
             if (dto.Name != "")
@@ -101,7 +99,7 @@ namespace Application.Services
 
             await _userRepository.UpdateUser(user);
 
-            return _mapper.ToUserResponse(user);
+            return UserMapper.ToUserResponse(user);
 
         }
     }

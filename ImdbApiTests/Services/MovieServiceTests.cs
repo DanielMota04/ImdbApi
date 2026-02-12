@@ -12,7 +12,6 @@ namespace ImdbApiTests.Services
 {
     public class MovieServiceTests
     {
-        private readonly MovieMapper _mapper;
         private readonly Mock<IMovieRepository> _movieRepositoryMock;
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
         private readonly Mock<IMovieListRepository> _movieListRepositoryMock;
@@ -21,13 +20,12 @@ namespace ImdbApiTests.Services
 
         public MovieServiceTests()
         {
-            _mapper = new MovieMapper();
             _movieRepositoryMock = new Mock<IMovieRepository>();
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
             _movieListRepositoryMock = new Mock<IMovieListRepository>();
 
             _movieService = new MovieService
-                (_mapper, _movieRepositoryMock.Object, _httpContextAccessorMock.Object, _movieListRepositoryMock.Object);
+                (_movieRepositoryMock.Object, _httpContextAccessorMock.Object, _movieListRepositoryMock.Object);
         }
 
         private void MockUserLogin(string userId)
@@ -35,7 +33,7 @@ namespace ImdbApiTests.Services
             var context = new DefaultHttpContext();
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, userId)
+                new(ClaimTypes.NameIdentifier, userId)
             };
 
             var identity = new ClaimsIdentity(claims, "TestAuthType");
@@ -74,10 +72,10 @@ namespace ImdbApiTests.Services
                 Title = "O poderoso chefão",
                 Genre = "Drama",
                 Director = "Francis ford copolla",
-                Actors = new List<string>
-                {
+                Actors =
+                [
                     "Marlon Brando", "Al Pacino", "James Caan"
-                }
+                ]
             };
             _movieRepositoryMock.Setup(repo => repo.FindMovieByTitle("o poderoso chefão")).ReturnsAsync(false);
 
@@ -88,10 +86,10 @@ namespace ImdbApiTests.Services
                 Genre = "Drama",
                 Rating = 0.0,
                 Director = "Francis ford copolla",
-                Actors = new List<string>
-                {
+                Actors =
+                [
                     "Marlon Brando", "Al Pacino", "James Caan"
-                }
+                ]
             };
             _movieRepositoryMock.Setup(repo => repo.CreateMovie(It.IsAny<Movie>())).ReturnsAsync(entity);
 
@@ -115,10 +113,10 @@ namespace ImdbApiTests.Services
                 Genre = "Drama",
                 Rating = 0.0,
                 Director = "Francis ford copolla",
-                Actors = new List<string>
-                {
+                Actors =
+                [
                     "Marlon Brando", "Al Pacino", "James Caan"
-                }
+                ]
             };
 
             _movieRepositoryMock.Setup(repo => repo.FindMovieById(movieId)).ReturnsAsync(movie);
@@ -211,9 +209,9 @@ namespace ImdbApiTests.Services
                 Rating = 0,
                 Genre = "Ação",
                 Director = "David Fincher",
-                Actors = new List<string>{
+                Actors = [
                     "Brad pitt", "Edward Norton"
-                }
+                ]
             };
 
             _movieRepositoryMock.Setup(x => x.FindMovieById(movieId)).ReturnsAsync(movie);

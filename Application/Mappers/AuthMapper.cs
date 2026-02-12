@@ -6,7 +6,7 @@ namespace Application.Mappers
 {
     public class AuthMapper
     {
-        public User RegisterToEntity(AuthRegisterRequestDTO dto, string email, string password)
+        public static User RegisterToEntity(AuthRegisterRequestDTO dto, string email, string password)
         {
             User user = new()
             {
@@ -19,7 +19,7 @@ namespace Application.Mappers
             return user;
         }
 
-        public AuthResponseDTO EntityToResponse(User entity)
+        public static AuthResponseDTO EntityToResponse(User entity)
         {
             AuthResponseDTO dto = new()
             {

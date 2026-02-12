@@ -11,32 +11,31 @@ namespace Application.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly AuthMapper _mapper;
         private readonly IJwtService _jwtService;
         private readonly IUserRepository _userRepository;
-        public AuthService(AuthMapper mapper, IJwtService jwtService, IUserRepository userRepository)
+        public AuthService(IJwtService jwtService, IUserRepository userRepository)
         {
-            _mapper = mapper;
             _jwtService = jwtService;
             _userRepository = userRepository;
         }
 
         public async Task<AuthResponseDTO> RegisterAsync(AuthRegisterRequestDTO dto)
         {
-            RegisterValidator validator = new RegisterValidator();
+            RegisterValidator validator = new();
 
             string normalizedEmail = dto.Email.Trim().ToLower();
 
-            if (await _userRepository.UserExistsByEmail(normalizedEmail)) throw new ConflictException("Email already in use.");
+            bool emailAreadyExists = await _userRepository.UserExistsByEmail(normalizedEmail);
+            if (emailAreadyExists) throw new ConflictException("Email already in use.");
 
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
-            var userEntity = _mapper.RegisterToEntity(dto, normalizedEmail, passwordHash);
+            var userEntity = AuthMapper.RegisterToEntity(dto, normalizedEmail, passwordHash);
 
             validator.ValidateAndThrow(userEntity);
 
             await _userRepository.CreateUser(userEntity);
 
-            return _mapper.EntityToResponse(userEntity);
+            return AuthMapper.EntityToResponse(userEntity);
         }
 
         public async Task<string?> LoginAsync(AuthLoginRequestDTO dto)

@@ -1,7 +1,6 @@
 ﻿using Application.DTOs.Response.Movie;
 using Application.DTOs.Response.User;
 using Application.Interfaces;
-using Application.Mappers;
 using Application.Services;
 using Domain.Enums;
 using Domain.Exceptions;
@@ -14,7 +13,6 @@ namespace ImdbApiTests.Services
 {
     public class MovieListServiceTests
     {
-        private readonly MovieListMapper _mapper;
         private readonly Mock<IMovieService> _movieServiceMock;
         private readonly Mock<IUserService> _userServiceMock;
         private readonly Mock<IMovieListRepository> _movieListRepositoryMock;
@@ -24,12 +22,11 @@ namespace ImdbApiTests.Services
 
         public MovieListServiceTests()
         {
-            _mapper = new MovieListMapper();
             _movieServiceMock = new Mock<IMovieService>();
             _userServiceMock = new Mock<IUserService>();
             _movieListRepositoryMock = new Mock<IMovieListRepository>();
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-            _movieListService = new MovieListService(_mapper, _movieServiceMock.Object, _userServiceMock.Object, _movieListRepositoryMock.Object, _httpContextAccessorMock.Object);
+            _movieListService = new MovieListService(_movieServiceMock.Object, _userServiceMock.Object, _movieListRepositoryMock.Object, _httpContextAccessorMock.Object);
         }
 
         private void MockUserLogin(string userId)
@@ -37,7 +34,7 @@ namespace ImdbApiTests.Services
             var context = new DefaultHttpContext();
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, userId)
+                new(ClaimTypes.NameIdentifier, userId)
             };
 
             var identity = new ClaimsIdentity(claims, "TestAuthType");

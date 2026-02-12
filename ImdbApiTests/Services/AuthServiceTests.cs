@@ -1,6 +1,5 @@
 ﻿using Application.DTOs.Request.Auth;
 using Application.Interfaces;
-using Application.Mappers;
 using Application.Services;
 using Domain.Enums;
 using Domain.Exceptions;
@@ -11,7 +10,6 @@ namespace ImdbApiTests.Services
 {
     public class AuthServiceTests
     {
-        private readonly AuthMapper _mapper;
         private readonly Mock<IJwtService> _jwtServiceMock;
         private readonly Mock<IUserRepository> _userRepositoryMock;
 
@@ -19,11 +17,10 @@ namespace ImdbApiTests.Services
 
         public AuthServiceTests()
         {
-            _mapper = new AuthMapper();
             _jwtServiceMock = new Mock<IJwtService>();
             _userRepositoryMock = new Mock<IUserRepository>();
 
-            _authService = new AuthService(_mapper, _jwtServiceMock.Object, _userRepositoryMock.Object);
+            _authService = new AuthService(_jwtServiceMock.Object, _userRepositoryMock.Object);
         }
 
         [Fact]

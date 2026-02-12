@@ -12,7 +12,6 @@ namespace ImdbApiTests.Services
 {
     public class UserServiceTests
     {
-        private readonly UserMapper _mapper;
         private readonly Mock<IUserRepository> _userRepositoryMock;
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
 
@@ -20,11 +19,10 @@ namespace ImdbApiTests.Services
 
         public UserServiceTests()
         {
-            _mapper = new UserMapper();
             _userRepositoryMock = new Mock<IUserRepository>();
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
 
-            _userService = new UserService(_userRepositoryMock.Object, _mapper, _httpContextAccessorMock.Object);
+            _userService = new UserService(_userRepositoryMock.Object, _httpContextAccessorMock.Object);
         }
 
         private void MockUserLogin(string userId)
@@ -32,7 +30,7 @@ namespace ImdbApiTests.Services
             var context = new DefaultHttpContext();
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, userId)
+                new(ClaimTypes.NameIdentifier, userId)
             };
 
             var identity = new ClaimsIdentity(claims, "TestAuthType");

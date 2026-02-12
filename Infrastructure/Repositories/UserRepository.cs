@@ -24,27 +24,26 @@ namespace Infrastructure.Repositories
             var user = await _context.Users.FindAsync(id);
             return user;
         }
-        public async Task<User> DeactivateUser(User u)
+        public async Task<User> DeactivateUser(User user)
         {
-            var user = await GetUserByIdAsync(u.Id);
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
 
             return user;
         }
-        public async Task<User> CreateUser(User u)
+        public async Task<User> CreateUser(User user)
         {
-            _context.Users.Add(u);
+            _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            return u;
+            return user;
         }
-        public async Task<User> UpdateUser(User u)
+        public async Task<User> UpdateUser(User user)
         {
-            _context.Users.Update(u);
+            _context.Users.Update(user);
             await _context.SaveChangesAsync();
 
-            return u;
+            return user;
         }
         public async Task<bool> UserExistsByEmail(string email)
         {

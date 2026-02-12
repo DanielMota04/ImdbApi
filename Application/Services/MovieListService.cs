@@ -12,15 +12,13 @@ namespace Application.Services
 {
     public class MovieListService : IMovieListService
     {
-        private readonly MovieListMapper _mapper;
         private readonly IMovieService _movieService;
         private readonly IUserService _userService;
         private readonly IMovieListRepository _movieListRepository;
         private readonly IHttpContextAccessor _httpContextAcessor;
 
-        public MovieListService(MovieListMapper mapper, IMovieService movieService, IUserService userService, IMovieListRepository movieListRepository, IHttpContextAccessor httpContextAcessor)
+        public MovieListService(IMovieService movieService, IUserService userService, IMovieListRepository movieListRepository, IHttpContextAccessor httpContextAcessor)
         {
-            _mapper = mapper;
             _movieService = movieService;
             _userService = userService;
             _movieListRepository = movieListRepository;
@@ -30,7 +28,7 @@ namespace Application.Services
         public async Task<MovieListResponseDTO> AddMovieToList(int movieId)
         {
             var movie = await _movieService.GetMovieById(movieId);
-            var userId = int.Parse(_httpContextAcessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var userId = int.Parse(_httpContextAcessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)!.Value); // mover para o controller
 
             var user = await _userService.GetUserById(userId);
 
@@ -44,12 +42,12 @@ namespace Application.Services
 
             await _movieListRepository.CreateMovieList(movieList);
 
-            return _mapper.EntityToResponse(movieList, user.Name);
+            return MovieListMapper.EntityToResponse(movieList, user.Name);
         }
 
         public async Task<PagedResult<MovieDetailsResponseDTO>> GetMovieList(PaginationParams paginationParams)
         {
-            var userId = int.Parse(_httpContextAcessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var userId = int.Parse(_httpContextAcessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)!.Value); // mover para o controller
             var allMovieList = await _movieListRepository.ListMoviesByUserId(userId);
 
             var query = allMovieList.AsQueryable();
@@ -78,7 +76,7 @@ namespace Application.Services
         {
             var movieList = await _movieListRepository.FindMovieListById(id);
 
-            var userId = int.Parse(_httpContextAcessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var userId = int.Parse(_httpContextAcessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)!.Value); // mover para o controller
 
             if (movieList == null) throw new ResourceNotFoundException("Movie not found.");
             if (movieList.UserId != userId) throw new ForbiddenException("You can't remove a movie that is not in your list");

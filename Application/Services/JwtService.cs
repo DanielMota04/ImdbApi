@@ -23,12 +23,12 @@ namespace Application.Services
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[]
-                {
+                Subject = new ClaimsIdentity(
+                [
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                     new Claim(ClaimTypes.Email, user.Email),
                     new Claim(ClaimTypes.Role, user.Role.ToString())
-                }),
+                ]),
                 Expires = DateTime.UtcNow.AddHours(6),
                 SigningCredentials = credentials
             };
