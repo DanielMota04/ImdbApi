@@ -1,9 +1,11 @@
-﻿using Application.Interfaces;
+﻿using Application.DTOs.Response.Auth;
+using Application.Interfaces;
 using Domain.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Application.Services
@@ -15,11 +17,13 @@ namespace Application.Services
         {
             _configuration = configuration;
         }
-        public string GenerateToken(User user)
+        public TokenResponse GenerateToken(User user)
         {
             var handler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_configuration["JwtSettings:SecretKey"]!);
             var credentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature);
+
+            var expires = DateTime.UtcNow.AddHours(1);
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
@@ -29,11 +33,25 @@ namespace Application.Services
                     new Claim(ClaimTypes.Email, user.Email),
                     new Claim(ClaimTypes.Role, user.Role.ToString())
                 ]),
-                Expires = DateTime.UtcNow.AddHours(1), // add refresh
+                Expires = expires,
                 SigningCredentials = credentials
             };
             var token = handler.CreateToken(tokenDescriptor);
-            return handler.WriteToken(token);
+
+            return new TokenResponse
+            {
+                AccessToken = handler.WriteToken(token),
+                RefreshToken = GenerateRefreshToken(),
+                Expiration = expires
+            };
+        }
+
+        private string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[64];
+            var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber);
         }
     }
 }
