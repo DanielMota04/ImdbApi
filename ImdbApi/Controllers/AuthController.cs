@@ -6,7 +6,7 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController : ControllerBase
+    public class AuthController : BaseApiController
     {
         private readonly IAuthService _service;
 
@@ -19,14 +19,14 @@ namespace Api.Controllers
         public async Task<IActionResult> Register(AuthRegisterRequestDTO dto)
         {
             var user = await _service.RegisterAsync(dto);
-            return Ok(user);
+            return HandleResult(user);
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login(AuthLoginRequestDTO dto)
         {
             var token = await _service.LoginAsync(dto);
-            return Ok(token);
+            return HandleResult(token);
         }
     }
 }

@@ -5,7 +5,8 @@ using Application.Mappers;
 using Application.Validators;
 using Domain.Interface.Repositories;
 using FluentValidation;
-using Domain.Exceptions;
+using FluentResults;
+using Domain.Errors;
 
 namespace Application.Services
 {
@@ -19,15 +20,15 @@ namespace Application.Services
             _userRepository = userRepository;
         }
 
-        public async Task<AuthResponseDTO> RegisterAsync(AuthRegisterRequestDTO dto)
+        public async Task<Result<AuthResponseDTO>> RegisterAsync(AuthRegisterRequestDTO dto)
         {
             RegisterValidator validator = new();
 
             string normalizedEmail = dto.Email.Trim().ToLower();
 
             bool emailAreadyExists = await _userRepository.UserExistsByEmail(normalizedEmail);
-            if (emailAreadyExists) 
-                throw new ConflictException("Email already in use.");
+            if (emailAreadyExists)
+                return Result.Fail(new ConflictError("Email already exists"));
 
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
             var userEntity = AuthMapper.RegisterToEntity(dto, normalizedEmail, passwordHash);
@@ -36,24 +37,24 @@ namespace Application.Services
 
             await _userRepository.CreateUser(userEntity);
 
-            return AuthMapper.EntityToResponse(userEntity);
+            return Result.Ok(AuthMapper.EntityToResponse(userEntity));
         }
 
-        public async Task<string?> LoginAsync(AuthLoginRequestDTO dto)
+        public async Task<Result<string>> LoginAsync(AuthLoginRequestDTO dto)
         {
             var normalizedEmail = dto.Email.Trim().ToLower();
 
             var user = await _userRepository.FindUserByEmail(normalizedEmail);
 
             if (user == null)
-                throw new ResourceNotFoundException("User not found.");
+                return Result.Fail(new UnauthorizedError("Invalid credentials."));
 
             var passwordIsValid = BCrypt.Net.BCrypt.Verify(dto.Password, user.Password);
 
             if (!passwordIsValid)
-                throw new UnauthorizedAccessException("Invalid credentials.");
+                return Result.Fail(new UnauthorizedError("Invalid credentials."));
 
-            return _jwtService.GenerateToken(user);
+            return Result.Ok(_jwtService.GenerateToken(user));
         }
     }
 }

@@ -11,7 +11,7 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UsersController : ControllerBase
+    public class UsersController : BaseApiController
     {
         private readonly IUserService _service;
 
@@ -22,29 +22,29 @@ namespace Api.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserResponse>>> GetAllUsers(
+        public async Task<IActionResult> GetAllUsers(
             [FromQuery] PaginationParams paginationParams,
             [FromQuery] Roles? role)
         {
             var users = await _service.GetAllUsers(paginationParams, role);
-            return Ok(users);
+            return HandleResult(users);
         }
 
         [Authorize]
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateUser(int id, UpdateUserRequestDTO dto)
+        public async Task<IActionResult> UpdateUser(int id, UpdateUserRequestDTO dto)
         {
             var loggedUser = User.GetUserId();
             var response = await _service.UpdateUser(id, dto, loggedUser);
-            return Ok(response);
+            return HandleResult(response);
         }
 
         [Authorize(Roles = "Admin")]
         [HttpGet("{id}")]
-        public async Task<ActionResult> GetUserById(int id)
+        public async Task<IActionResult> GetUserById(int id)
         {
             var user = await _service.GetUserById(id);
-            return Ok(user);
+            return HandleResult(user);
         }
 
         [Authorize(Roles = "Admin")]

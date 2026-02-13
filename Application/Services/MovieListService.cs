@@ -3,8 +3,9 @@ using Application.Interfaces;
 using Application.Mappers;
 using Domain.Interface.Repositories;
 using Domain.Models;
-using Domain.Exceptions;
 using Domain.Models.Pagination;
+using FluentResults;
+using Domain.Errors;
 
 namespace Application.Services
 {
@@ -23,7 +24,7 @@ namespace Application.Services
             _movieRepository = movieRepository;
         }
         
-        public async Task<PagedResult<MovieDetailsResponseDTO>> GetMovieList(PaginationParams paginationParams, int userId)
+        public async Task<Result<PagedResult<MovieDetailsResponseDTO>>> GetMovieList(PaginationParams paginationParams, int userId)
         {
             var pagedList = await _movieListRepository.ListMoviesByUserId(paginationParams, userId);
 
@@ -52,26 +53,28 @@ namespace Application.Services
                 .Cast<MovieDetailsResponseDTO>()
                 .ToList();
 
-            return new PagedResult<MovieDetailsResponseDTO>
+            var result = new PagedResult<MovieDetailsResponseDTO>
             {
                 Items = mappedItems,
                 TotalItems = pagedList.TotalItems,
                 PageNumber = pagedList.PageNumber,
                 PageSize = pagedList.PageSize
             };
+
+            return Result.Ok(result);
         }
 
-        public async Task<MovieListResponseDTO> AddMovieToList(int movieId, int userId)
+        public async Task<Result<MovieListResponseDTO>> AddMovieToList(int movieId, int userId)
         {
             var movie = await _movieService.GetMovieById(movieId);
 
             var user = await _userService.GetUserById(userId);
 
             if (movie == null)
-                throw new ResourceNotFoundException("Movie not found");
+                return Result.Fail(new NotFoundError("Movie not found"));
 
             if (user == null)
-                throw new ResourceNotFoundException("User not found");
+                return Result.Fail(new NotFoundError("User not found"));
 
             MovieList movieList = new()
             {
@@ -81,23 +84,24 @@ namespace Application.Services
 
 
             await _movieListRepository.CreateMovieList(movieList);
+            var result = MovieListMapper.EntityToResponse(movieList, user.Value.Name);
 
-            return MovieListMapper.EntityToResponse(movieList, user.Name);
+            return Result.Ok(result);
         }
 
-        public async Task<bool> RemoveMovieFromList(int id, int userId)
+        public async Task<Result<bool>> RemoveMovieFromList(int id, int userId)
         {
             var movieList = await _movieListRepository.FindMovieListById(id);
 
-            if (movieList == null) 
-                throw new ResourceNotFoundException("Movie not found.");
-            
+            if (movieList == null)
+                return Result.Fail(new NotFoundError("Movie List not found"));
+
             if (movieList.UserId != userId) 
-                throw new ForbiddenException("You can't remove a movie that is not in your list");
+                return Result.Fail(new ForbiddenError("You can't remove a movie that is not in your list"));
 
             _movieListRepository.RemoveMovieFromList(movieList);
 
-            return true;
+            return Result.Ok(true);
         }
     }
 }

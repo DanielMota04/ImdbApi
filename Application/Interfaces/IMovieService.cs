@@ -2,15 +2,16 @@
 using Application.DTOs.Response.Movie;
 using Domain.Enums;
 using Domain.Models.Pagination;
+using FluentResults;
 
 namespace Application.Interfaces
 {
     public interface IMovieService
     {
-        public Task<MovieDetailsResponseDTO> GetMovieById(int id);
-        public Task<PagedResult<MovieResponseDTO>> GetAllMovies(PaginationParams paginationParams, string? title, string? director, string? genre, string? actors, MovieOrderBy order);
-        public Task<MovieDetailsResponseDTO> CreateMovie(CreateMovieRequestDTO dto);
-        public Task<bool> DeleteMovie(int id);
-        public Task<double?> Vote(VoteMovieRequestDTO vote, int userId);
+        public Task<Result<MovieDetailsResponseDTO>> GetMovieById(int id);
+        public Task<Result<PagedResult<MovieResponseDTO>>> GetAllMovies(PaginationParams paginationParams, string? title, string? director, string? genre, string? actors, MovieOrderBy order);
+        public Task<Result<MovieDetailsResponseDTO>> CreateMovie(CreateMovieRequestDTO dto);
+        public Task<Result<bool>> DeleteMovie(int id);
+        public Task<Result<double>> Vote(VoteMovieRequestDTO vote, int userId);
     }
 }

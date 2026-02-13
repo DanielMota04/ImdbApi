@@ -12,7 +12,7 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class MoviesController : ControllerBase
+    public class MoviesController : BaseApiController
     {
         private readonly IMovieService _service;
         private readonly IMovieListService _movieListService;
@@ -24,19 +24,19 @@ namespace Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Movie>>> GetMovies(
+        public async Task<IActionResult> GetMovies(
             [FromQuery] PaginationParams paginationParams,
             [FromQuery] string? title, string? director, string? genre, string? actors, MovieOrderBy order)
         {
             var movies = await _service.GetAllMovies(paginationParams, title, director, genre, actors, order);
-            return Ok(movies);
+            return HandleResult(movies);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Movie>> GetMovie(int id)
+        public async Task<IActionResult> GetMovie(int id)
         {
             var movie = await _service.GetMovieById(id);
-            return Ok(movie);
+            return HandleResult(movie);
         }
 
         [Authorize(Roles = "Admin")]
@@ -44,7 +44,7 @@ namespace Api.Controllers
         public async Task<IActionResult> CreateMovie(CreateMovieRequestDTO dto)
         {
             var createdMovie = await _service.CreateMovie(dto);
-            return CreatedAtAction(nameof(GetMovie), new { id = createdMovie.Id }, createdMovie);
+            return HandleResult(createdMovie);
         }
 
         [HttpDelete("{id}")]
@@ -61,16 +61,16 @@ namespace Api.Controllers
         {
             var userId = User.GetUserId();
             var result = await _movieListService.AddMovieToList(id, userId);
-            return Ok(result);
+            return HandleResult(result);
         }
 
         [Authorize]
         [HttpGet("myList")]
-        public async Task<ActionResult<IEnumerable<MovieDetailsResponseDTO>>> GetMovieList([FromQuery] PaginationParams paginationParams)
+        public async Task<IActionResult> GetMovieList([FromQuery] PaginationParams paginationParams)
         {
             var userId = User.GetUserId();
             var result = await _movieListService.GetMovieList(paginationParams, userId);
-            return Ok(result);
+            return HandleResult(result);
         }
 
         [Authorize]
@@ -79,17 +79,17 @@ namespace Api.Controllers
         {
             var userId = User.GetUserId();
             var result = await _movieListService.RemoveMovieFromList(id, userId);
-            return Ok(result);
+            return HandleResult(result);
         }
 
 
         [Authorize]
         [HttpPut("vote")]
-        public async Task<ActionResult> Vote(VoteMovieRequestDTO dto)
+        public async Task<IActionResult> Vote(VoteMovieRequestDTO dto)
         {
             var userId = User.GetUserId();
             var value = await _service.Vote(dto, userId);
-            return Ok(value);
+            return HandleResult(value);
         }
 
     }

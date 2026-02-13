@@ -3,9 +3,10 @@ using Application.DTOs.Response.User;
 using Application.Interfaces;
 using Application.Mappers;
 using Domain.Enums;
-using Domain.Exceptions;
+using Domain.Errors;
 using Domain.Interface.Repositories;
 using Domain.Models.Pagination;
+using FluentResults;
 
 namespace Application.Services
 {
@@ -17,60 +18,64 @@ namespace Application.Services
             _userRepository = userRepository;
         }
 
-        public async Task<PagedResult<UserResponse>> GetAllUsers(PaginationParams paginationParams, Roles? role)
+        public async Task<Result<PagedResult<UserResponse>>> GetAllUsers(PaginationParams paginationParams, Roles? role)
         {
             var pagedUsers = await _userRepository.GetAllUsersAsync(paginationParams, role);
 
             var mappedItems = pagedUsers.Items?.Select(u => UserMapper.ToUserResponse(u)).ToList() ?? new List<UserResponse>();
 
-            return new PagedResult<UserResponse>
+            var result = new PagedResult<UserResponse>
             {
                 Items = mappedItems,
                 TotalItems = pagedUsers.TotalItems,
                 PageNumber = pagedUsers.PageNumber,
                 PageSize = pagedUsers.PageSize
             };
+
+            return Result.Ok(result);
         }
 
-        public async Task<UserResponse?> GetUserById(int id)
+        public async Task<Result<UserResponse>> GetUserById(int id)
         {
             var user = await _userRepository.GetUserByIdAsync(id);
             if (user == null)
-                throw new ResourceNotFoundException($"User not found by id {id}.");
+                return Result.Fail(new NotFoundError($"User not found by id {id}."));
 
-            return UserMapper.ToUserResponse(user);
+            return Result.Ok(UserMapper.ToUserResponse(user));
         }
 
-        public async Task<bool> DeactivateUser(int id)
+        public async Task<Result<bool>> DeactivateUser(int id)
         {
             var user = await _userRepository.GetUserByIdAsync(id);
             if (user == null)
-                throw new ResourceNotFoundException($"User not found by id {id}.");
+                return Result.Fail(new NotFoundError($"User not found by id {id}."));
+            
             user.IsActive = false;
             await _userRepository.DeactivateUser(user);
 
-            return true;
+            return Result.Ok(true);
         }
 
-        public async Task<bool> DeactivateMe(int userId)
+        public async Task<Result<bool>> DeactivateMe(int userId)
         {
             var user = await _userRepository.GetUserByIdAsync(userId);
-            if (user == null) 
-                throw new ResourceNotFoundException($"User not found by id {userId}.");
+            if (user == null)
+                return Result.Fail(new NotFoundError($"User not found by id {userId}."));
+
             user.IsActive = false;
             await _userRepository.DeactivateUser(user);
 
-            return true;
+            return Result.Ok(true);
         }
 
-        public async Task<UserResponse> UpdateUser(int id, UpdateUserRequestDTO dto, int loggedUser)
+        public async Task<Result<UserResponse>> UpdateUser(int id, UpdateUserRequestDTO dto, int loggedUser)
         {
             var user = await _userRepository.GetUserByIdAsync(id);
-            if (user == null) 
-                throw new ResourceNotFoundException($"User not found by id {id}.");
+            if (user == null)
+                return Result.Fail(new NotFoundError($"User not found by id {id}."));
 
-            if (loggedUser != id) 
-                throw new ForbiddenException("You cannot update other users data.");
+            if (loggedUser != id)
+                return Result.Fail(new ForbiddenError("You cannot update other users data."));
 
             if (dto.Name != "" && dto.Name != null)
                 user.Name = dto.Name;
@@ -80,7 +85,7 @@ namespace Application.Services
 
             await _userRepository.UpdateUser(user);
 
-            return UserMapper.ToUserResponse(user);
+            return Result.Ok(UserMapper.ToUserResponse(user));
 
         }
     }
