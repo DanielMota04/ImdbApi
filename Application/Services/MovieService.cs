@@ -112,7 +112,7 @@ namespace Application.Services
             if (movie == null) 
                 throw new ResourceNotFoundException($"Movie not found with id {id}.");
             
-            await _movieRepository.DeleteMovie(movie);
+            _movieRepository.DeleteMovie(movie);
 
             return true;
         }
@@ -122,7 +122,14 @@ namespace Application.Services
             VoteValidator validator = new VoteValidator();
 
             var movie = await _movieRepository.FindMovieById(vote.MovieId);
+
+            if (movie is null)
+                throw new ResourceNotFoundException("Movie not found in your list.");
+
             var movieList = await _movieListRepository.FindMovieInListByMovieIdAndUserId(vote.MovieId, userId);
+
+            if (movieList is null)
+                throw new ResourceNotFoundException("Movie not found in your list.");
 
             if (movieList.IsVoted) 
                 throw new ForbiddenException("You has already voted in this movie.");
@@ -132,9 +139,9 @@ namespace Application.Services
             movie.TotalRating += vote.Vote;
             movie.Votes += 1;
             movie.Rating = movie.TotalRating / movie.Votes;
-            await _movieListRepository.UpdateIsVoted(movieList);
+            _movieListRepository.UpdateIsVoted(movieList);
 
-            await _movieRepository.UpdateRating(movie);
+            _movieRepository.UpdateRating(movie);
 
             return movie.Rating;
         }

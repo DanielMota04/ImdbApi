@@ -29,7 +29,10 @@ namespace Application.Services
 
             if (movie == null)
                 throw new ResourceNotFoundException("Movie not found");
-            
+
+            if (user == null)
+                throw new ResourceNotFoundException("User not found");
+
             MovieList movieList = new()
             {
                 MovieId = movieId,
@@ -78,7 +81,7 @@ namespace Application.Services
             if (movieList.UserId != userId) 
                 throw new ForbiddenException("You can't remove a movie that is not in your list");
 
-            await _movieListRepository.RemoveMovieFromList(movieList);
+            _movieListRepository.RemoveMovieFromList(movieList);
 
             return true;
         }

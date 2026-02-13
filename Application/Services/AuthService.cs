@@ -45,9 +45,12 @@ namespace Application.Services
 
             var user = await _userRepository.FindUserByEmail(normalizedEmail);
 
+            if (user == null)
+                throw new ResourceNotFoundException("User not found.");
+
             var passwordIsValid = BCrypt.Net.BCrypt.Verify(dto.Password, user.Password);
 
-            if (user == null || !passwordIsValid)
+            if (!passwordIsValid)
                 throw new UnauthorizedAccessException("Invalid credentials.");
 
             return _jwtService.GenerateToken(user);

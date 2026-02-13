@@ -87,10 +87,10 @@ namespace Application.Services
             if (loggedUser != id) 
                 throw new ForbiddenException("You cannot update other users data.");
 
-            if (dto.Name != "")
+            if (dto.Name != "" && dto.Name != null)
                 user.Name = dto.Name;
 
-            if (dto.Password != "")
+            if (dto.Password != "" && dto.Password != null)
                 user.Password = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
             await _userRepository.UpdateUser(user);
