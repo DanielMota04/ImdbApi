@@ -1,10 +1,7 @@
 ﻿using Application.DTOs.Request.User;
 using Application.DTOs.Response.User;
-using Application.Mappers;
-using Domain.Errors;
 using Domain.Interface.Repositories;
 using Domain.Models;
-using FluentResults;
 
 namespace ImdbApiTests.Services
 {
