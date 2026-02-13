@@ -1,4 +1,5 @@
-﻿using Application.DTOs.Pagination;
+﻿using Api.Extensions;
+using Application.DTOs.Pagination;
 using Application.DTOs.Request.User;
 using Application.DTOs.Response.User;
 using Application.Interfaces;
@@ -14,12 +15,10 @@ namespace Api.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUserService _service;
-        private readonly IHttpContextAccessor _httpContextAcessor;
 
-        public UsersController(IUserService service, IHttpContextAccessor httpContextAcessor)
+        public UsersController(IUserService service)
         {
             _service = service;
-            _httpContextAcessor = httpContextAcessor;
         }
 
         [Authorize(Roles = "Admin")]
@@ -36,7 +35,7 @@ namespace Api.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateUser(int id, UpdateUserRequestDTO dto)
         {
-            var loggedUser = int.Parse(_httpContextAcessor.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var loggedUser = User.GetUserId();
             var response = await _service.UpdateUser(id, dto, loggedUser);
             return Ok(response);
         }
@@ -61,7 +60,7 @@ namespace Api.Controllers
         [HttpDelete("/me")]
         public async Task<IActionResult> DeactivateMe()
         {
-            var userId = int.Parse(_httpContextAcessor.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var userId = User.GetUserId();
             await _service.DeactivateMe(userId);
             return NoContent();
         }

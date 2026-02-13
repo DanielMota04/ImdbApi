@@ -1,4 +1,5 @@
-﻿using Application.DTOs.Pagination;
+﻿using Api.Extensions;
+using Application.DTOs.Pagination;
 using Application.DTOs.Request.Movie;
 using Application.DTOs.Response.Movie;
 using Application.Interfaces;
@@ -16,13 +17,11 @@ namespace Api.Controllers
     {
         private readonly IMovieService _service;
         private readonly IMovieListService _movieListService;
-        private readonly IHttpContextAccessor _httpContextAcessor;
 
-        public MoviesController(IMovieService service, IMovieListService movieListService, IHttpContextAccessor httpContextAcessor)
+        public MoviesController(IMovieService service, IMovieListService movieListService)
         {
             _service = service;
             _movieListService = movieListService;
-            _httpContextAcessor = httpContextAcessor;
         }
 
         [HttpGet]
@@ -61,7 +60,7 @@ namespace Api.Controllers
         [HttpPost("{id}/addToList")]
         public async Task<IActionResult> AddMovieToList(int id)
         {
-            var userId = int.Parse(_httpContextAcessor.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var userId = User.GetUserId();
             var result = await _movieListService.AddMovieToList(id, userId);
             return Ok(result);
         }
@@ -70,7 +69,7 @@ namespace Api.Controllers
         [HttpGet("myList")]
         public async Task<ActionResult<IEnumerable<MovieDetailsResponseDTO>>> GetMovieList([FromQuery] PaginationParams paginationParams)
         {
-            var userId = int.Parse(_httpContextAcessor.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var userId = User.GetUserId();
             var result = await _movieListService.GetMovieList(paginationParams, userId);
             return Ok(result);
         }
@@ -79,7 +78,7 @@ namespace Api.Controllers
         [HttpDelete("{id}/removeFromList")]
         public async Task<IActionResult> RemoveMovieFromList(int id)
         {
-            var userId = int.Parse(_httpContextAcessor.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var userId = User.GetUserId();
             var result = await _movieListService.RemoveMovieFromList(id, userId);
             return Ok(result);
         }
@@ -89,7 +88,7 @@ namespace Api.Controllers
         [HttpPut("vote")]
         public async Task<ActionResult> Vote(VoteMovieRequestDTO dto)
         {
-            var userId = int.Parse(_httpContextAcessor.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var userId = User.GetUserId();
             var value = await _service.Vote(dto, userId);
             return Ok(value);
         }
