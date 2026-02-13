@@ -1,162 +1,167 @@
 ﻿using Application.DTOs.Request.User;
+using Application.DTOs.Response.User;
 using Application.Mappers;
-using Application.Services;
-using Domain.Enums;
-using Domain.Exceptions;
+using Domain.Errors;
 using Domain.Interface.Repositories;
 using Domain.Models;
-using Microsoft.AspNetCore.Http;
-using System.Security.Claims;
+using FluentResults;
 
 namespace ImdbApiTests.Services
 {
     public class UserServiceTests
     {
-        private readonly Mock<IUserRepository> _userRepositoryMock;
-        private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
-
+        private readonly IUserRepository _userRepositoryMock;
         private readonly UserService _userService;
 
         public UserServiceTests()
         {
-            _userRepositoryMock = new Mock<IUserRepository>();
-            _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-
-            _userService = new UserService(_userRepositoryMock.Object, _httpContextAccessorMock.Object);
+            _userRepositoryMock = Substitute.For<IUserRepository>();
+            _userService = new UserService(_userRepositoryMock);
         }
 
-        private void MockUserLogin(string userId)
+        // GetUserById
+        [Fact]
+        public async Task GetUserById_WhenUserExists_ReturnSuccess()
         {
-            var context = new DefaultHttpContext();
-            var claims = new List<Claim>
-            {
-                new(ClaimTypes.NameIdentifier, userId)
-            };
+            int userId = 1;
+            var user = new User { Id = userId, Name = "username", Email = "user@email.com", Password = "password123" };
+            var userResponse = new UserResponse { Id = userId, Name = "username", Role = Domain.Enums.Roles.User };
 
-            var identity = new ClaimsIdentity(claims, "TestAuthType");
-            var claimsPrincipal = new ClaimsPrincipal(identity);
 
-            context.User = claimsPrincipal;
+            _userRepositoryMock.GetUserByIdAsync(userId).Returns(user);
 
-            _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
+            var result = await _userService.GetUserById(userId);
+
+            Assert.True(result.IsSuccess);
+            Assert.Equal(userResponse.Id, result.Value.Id);
+            Assert.Equal(userResponse.Name, result.Value.Name);
         }
 
         [Fact]
-        public async Task DeactivateUser_WhenUserDoesNotExists_ThrowException()
+        public async Task GetUserById_WhenUserDoesNotExists_ReturnFail()
+        {
+            int userId = 1;
+            var user = new User { Id = userId, Name = "username", Email = "user@email.com", Password = "password123" };
+            var userResponse = new UserResponse { Id = userId, Name = "username", Role = Domain.Enums.Roles.User };
+
+
+            _userRepositoryMock.GetUserByIdAsync(userId).Returns((User)null);
+
+            var result = await _userService.GetUserById(userId);
+
+            Assert.True(result.IsFailed);
+            Assert.Equal($"User not found by id {userId}.", result.Errors.First().Message);
+        }
+
+        // DeactivateUser
+        [Fact]
+        public async Task DeactivateUser_WhenUserDoesNotExists_ReturnFail()
         {
             int userId = 99;
-
-            _userRepositoryMock.Setup(repo => repo.GetUserByIdAsync(userId)).ReturnsAsync((User)null);
-
-            await Assert.ThrowsAsync<ResourceNotFoundException>(() => _userService.DeactivateUser(userId));
-
-            _userRepositoryMock.Verify(x => x.DeactivateUser(It.IsAny<User>()), Times.Never);
-        }
-
-        [Fact]
-        public async Task DeactivateUser_WhenUserExists_ReturnTrue()
-        {
-            int userId = 1;
-
-            User user = new()
-            {
-                Id = userId,
-                Name = "username",
-                Email = "user@email.com",
-                Password = "123456",
-                Role = Roles.Admin,
-                IsActive = false
-            };
-
-            _userRepositoryMock.Setup(repo => repo.GetUserByIdAsync(userId)).ReturnsAsync(user);
+            _userRepositoryMock.GetUserByIdAsync(userId).Returns((User)null);
 
             var result = await _userService.DeactivateUser(userId);
-            Assert.True(result);
 
-            _userRepositoryMock.Verify(x => x.DeactivateUser(It.IsAny<User>()), Times.Once);
+            Assert.True(result.IsFailed);
+            Assert.Equal($"User not found by id {userId}.", result.Errors.First().Message);
+
+            await _userRepositoryMock.DidNotReceive().DeactivateUser(Arg.Any<User>());
         }
 
         [Fact]
-        public async Task UpdateUser_WhenUserDoesNotExists_ThrowException()
-        {
-            int userId = 100;
-
-            UpdateUserRequestDTO dto = new()
-            {
-                Name = "username",
-                Password = "123456"
-            };
-
-            _userRepositoryMock.Setup(repo => repo.GetUserByIdAsync(userId)).ReturnsAsync((User)null);
-
-            await Assert.ThrowsAsync<ResourceNotFoundException>(() => _userService.UpdateUser(userId, dto));
-
-            _userRepositoryMock.Verify(x => x.UpdateUser(It.IsAny<User>()), Times.Never);
-        }
-
-        [Fact]
-        public async Task UpdateUser_WhenUserIsNotLogged_ThrowException()
-        {
-            int userId = 100;
-            int loggedUserId = 1;
-            MockUserLogin(loggedUserId.ToString());
-
-
-            UpdateUserRequestDTO dto = new()
-            {
-                Name = "username",
-                Password = "123456"
-            };
-
-            User user = new()
-            {
-                Id = userId,
-                Name = "username",
-                Email = "user@email.com",
-                Password = "123456",
-                Role = Roles.Admin,
-                IsActive = false
-            };
-
-            _userRepositoryMock.Setup(repo => repo.GetUserByIdAsync(userId)).ReturnsAsync(user);
-
-            await Assert.ThrowsAsync<ForbiddenException>(() => _userService.UpdateUser(userId, dto));
-
-            _userRepositoryMock.Verify(x => x.UpdateUser(It.IsAny<User>()), Times.Never);
-        }
-
-        [Fact]
-        public async Task UpdateUser_WhenUserExistsAndIsLogged_ReturnsUserResponse()
+        public async Task DeactivateUser_WhenUserExists_ReturnSuccess()
         {
             int userId = 1;
-            MockUserLogin(userId.ToString());
+            var user = new User { Id = userId, Name = "username", Email = "user@email.com", Password = "password123" };
 
+            _userRepositoryMock.GetUserByIdAsync(userId).Returns(user);
 
-            UpdateUserRequestDTO dto = new()
-            {
-                Name = "username",
-                Password = "123456"
-            };
+            var result = await _userService.DeactivateUser(userId);
 
-            User user = new()
-            {
-                Id = userId,
-                Name = "username",
-                Email = "user@email.com",
-                Password = "123456",
-                Role = Roles.Admin,
-                IsActive = false
-            };
+            Assert.True(result.IsSuccess);
+        }
 
-            _userRepositoryMock.Setup(repo => repo.GetUserByIdAsync(userId)).ReturnsAsync(user);
+        // DeactivateMe
+        [Fact]
+        public async Task DeactivateMe_WhenUserExists_ReturnSuccess()
+        {
+            int userId = 1;
+            var user = new User { Id = userId, Name = "username", Email = "user@email.com", Password = "password123" };
 
-            var result = await _userService.UpdateUser(userId ,dto);
+            _userRepositoryMock.GetUserByIdAsync(userId).Returns(user);
 
-            Assert.NotNull(result);
-            Assert.Equal(result.Role, user.Role);
-            Assert.Equal(result.Name, user.Name);
+            var result = await _userService.DeactivateMe(userId);
 
-            _userRepositoryMock.Verify(x => x.UpdateUser(It.IsAny<User>()), Times.Once);
+            Assert.True(result.IsSuccess);
+        }
+
+        [Fact]
+        public async Task DeactivateMe_WhenUserDoesNotExists_ReturnFail()
+        {
+            int userId = 99;
+            _userRepositoryMock.GetUserByIdAsync(userId).Returns((User)null);
+
+            var result = await _userService.DeactivateMe(userId);
+
+            Assert.True(result.IsFailed);
+            Assert.Equal($"User not found by id {userId}.", result.Errors.First().Message);
+
+            await _userRepositoryMock.DidNotReceive().DeactivateUser(Arg.Any<User>());
+        }
+
+        // UpdateUser
+        [Fact]
+        public async Task UpdateUser_WhenUserIsNotOwner_ReturnFail()
+        {
+            int userIdToUpdate = 100;
+            int loggedUserId = 1;
+
+            var dto = new UpdateUserRequestDTO { Name = "New Name" };
+            var user = new User { Id = userIdToUpdate, Name = "Old Name", Email = "user@email.com", Password = "password123" };
+
+            _userRepositoryMock.GetUserByIdAsync(userIdToUpdate).Returns(user);
+
+            var result = await _userService.UpdateUser(userIdToUpdate, dto, loggedUserId);
+
+            Assert.True(result.IsFailed);
+            Assert.Equal("You cannot update other users data.", result.Errors.First().Message);
+
+            await _userRepositoryMock.DidNotReceive().UpdateUser(Arg.Any<User>());
+        }
+
+        [Fact]
+        public async Task UpdateUser_WhenUserDoesNotExists_ReturnFail()
+        {
+            int userId = 99;
+            int loggedUserId = 1;
+
+            var dto = new UpdateUserRequestDTO { Name = "New Name" };
+
+            _userRepositoryMock.GetUserByIdAsync(userId).Returns((User)null);
+
+            var result = await _userService.UpdateUser(userId, dto, 1);
+
+            Assert.True(result.IsFailed);
+            Assert.Equal($"User not found by id {userId}.", result.Errors.First().Message);
+
+            await _userRepositoryMock.DidNotReceive().UpdateUser(Arg.Any<User>());
+        }
+
+        [Fact]
+        public async Task UpdateUser_WhenUserExistsAndIsOwner_ReturnSuccess()
+        {
+            int userId = 1;
+            var dto = new UpdateUserRequestDTO { Name = "Updated Name" };
+            var user = new User { Id = userId, Name = "Old Name", Email = "user@email.com", Password = "password123" };
+
+            _userRepositoryMock.GetUserByIdAsync(userId).Returns(user);
+
+            var result = await _userService.UpdateUser(userId, dto, userId);
+
+            Assert.True(result.IsSuccess);
+            Assert.Equal("Updated Name", result.Value.Name);
+
+            await _userRepositoryMock.Received(1).UpdateUser(Arg.Is<User>(u => u.Name == "Updated Name"));
         }
     }
 }
