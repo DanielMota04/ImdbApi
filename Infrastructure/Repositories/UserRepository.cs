@@ -1,5 +1,8 @@
-﻿using Domain.Interface.Repositories;
+﻿using Application.DTOs.Response.User;
+using Domain.Enums;
+using Domain.Interface.Repositories;
 using Domain.Models;
+using Domain.Models.Pagination;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,11 +17,30 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<User>> GetAllUsersAsync()
+        public async Task<PagedResult<User>> GetAllUsersAsync(PaginationParams paginationParams, Roles? role)
         {
-            var users = await _context.Users.AsNoTracking().ToListAsync();
-            return users;
+            var query = _context.Users.AsQueryable().Where(u => u.IsActive);
+
+            if (role.HasValue)
+                query = query.Where(u => u.Role == role.Value);
+
+            var totalItems = await query.CountAsync();
+
+            var items = await query
+                .OrderBy(u => u.Name)
+                .Skip((paginationParams.PageNumber - 1) * paginationParams.PageSize)
+                .Take(paginationParams.PageSize)
+                .ToListAsync();
+
+            return new PagedResult<User>
+            {
+                Items = items,
+                TotalItems = totalItems,
+                PageNumber = paginationParams.PageNumber,
+                PageSize = paginationParams.PageSize
+            };
         }
+
         public async Task<User?> GetUserByIdAsync(int id)
         {
             var user = await _context.Users.FindAsync(id);

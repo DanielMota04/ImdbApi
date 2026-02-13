@@ -1,7 +1,7 @@
-﻿using Application.DTOs.Pagination;
-using Application.DTOs.Request.Movie;
+﻿using Application.DTOs.Request.Movie;
 using Application.DTOs.Response.Movie;
 using Domain.Enums;
+using Domain.Models.Pagination;
 
 namespace Application.Interfaces
 {

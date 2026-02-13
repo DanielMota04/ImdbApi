@@ -1,5 +1,6 @@
 ﻿using Domain.Interface.Repositories;
 using Domain.Models;
+using Domain.Models.Pagination;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +13,27 @@ namespace Infrastructure.Repositories
         public MovieListRepository(AppDbContext context)
         {
             _context = context;
+        }
+
+        public async Task<PagedResult<MovieList>> ListMoviesByUserId(PaginationParams paginationParams, int userId)
+        {
+            var query = _context.MovieLists.AsQueryable().Where(ml => ml.UserId == userId);
+
+            var totalItems = await query.CountAsync();
+
+            var items = await query
+                .OrderBy(ml => ml.MovieId)
+                .Skip((paginationParams.PageNumber - 1) * paginationParams.PageSize)
+                .Take(paginationParams.PageSize)
+                .ToListAsync();
+
+            return new PagedResult<MovieList>
+            {
+                Items = items,
+                TotalItems = totalItems,
+                PageNumber = paginationParams.PageNumber,
+                PageSize = paginationParams.PageSize
+            };
         }
 
         public async Task<MovieList> CreateMovieList(MovieList movieList)
@@ -36,10 +58,6 @@ namespace Infrastructure.Repositories
             return await _context.MovieLists.AnyAsync(ml => ml.UserId == userId);
         }
 
-        public async Task<IEnumerable<MovieList>> ListMoviesByUserId(int userId)
-        {
-            return await _context.MovieLists.Where(ml => ml.UserId == userId).AsNoTracking().ToListAsync();
-        }
 
         public async void RemoveMovieFromList(MovieList movieList)
         {

@@ -1,10 +1,10 @@
 ﻿using Api.Extensions;
-using Application.DTOs.Pagination;
 using Application.DTOs.Request.Movie;
 using Application.DTOs.Response.Movie;
 using Application.Interfaces;
 using Domain.Enums;
 using Domain.Models;
+using Domain.Models.Pagination;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

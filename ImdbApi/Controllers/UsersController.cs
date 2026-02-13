@@ -1,9 +1,9 @@
 ﻿using Api.Extensions;
-using Application.DTOs.Pagination;
 using Application.DTOs.Request.User;
 using Application.DTOs.Response.User;
 using Application.Interfaces;
 using Domain.Enums;
+using Domain.Models.Pagination;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

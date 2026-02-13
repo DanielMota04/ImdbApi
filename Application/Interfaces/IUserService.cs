@@ -1,7 +1,7 @@
-﻿using Application.DTOs.Pagination;
-using Application.DTOs.Request.User;
+﻿using Application.DTOs.Request.User;
 using Application.DTOs.Response.User;
 using Domain.Enums;
+using Domain.Models.Pagination;
 
 namespace Application.Interfaces
 {

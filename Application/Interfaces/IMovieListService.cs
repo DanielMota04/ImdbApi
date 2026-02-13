@@ -1,5 +1,5 @@
-﻿using Application.DTOs.Pagination;
-using Application.DTOs.Response.Movie;
+﻿using Application.DTOs.Response.Movie;
+using Domain.Models.Pagination;
 
 namespace Application.Interfaces
 {

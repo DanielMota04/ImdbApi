@@ -1,4 +1,4 @@
-﻿namespace Application.DTOs.Pagination
+﻿namespace Domain.Models.Pagination
 {
     public class PagedResult<T>
     {

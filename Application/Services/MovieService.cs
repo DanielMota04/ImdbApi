@@ -1,4 +1,3 @@
-using Application.DTOs.Pagination;
 using Application.DTOs.Request.Movie;
 using Application.DTOs.Response.Movie;
 using Application.Interfaces;
@@ -9,6 +8,7 @@ using Domain.Interface.Repositories;
 using Domain.Models;
 using FluentValidation;
 using Domain.Exceptions;
+using Domain.Models.Pagination;
 
 namespace Application.Services
 {
@@ -46,53 +46,16 @@ namespace Application.Services
 
         public async Task<PagedResult<MovieResponseDTO>> GetAllMovies(PaginationParams paginationParams, string? title, string? director, string? genre, string? actor, MovieOrderBy order)
         {
-            var allMovies = await _movieRepository.GetAllMovies();
-            var query = allMovies.AsQueryable();
+            var movies = await _movieRepository.GetAllMovies(paginationParams, title, director, genre, actor, order);
 
-            if (title != null)
-            {
-                query = query.Where(m => m.Title.Contains(title));
-            }
-            if (director != null)
-            {
-                query = query.Where(m => m.Director.Contains(director));
-            }
-            if (genre != null)
-            {
-                query = query.Where(m => m.Genre.Contains(genre));
-            }
-            if (actor != null)
-            {
-                query = query.Where(m => m.Actors.Contains(actor));
-            }
-
-            var totalItems = query.Count();
-
-            List<Movie> pagedMovies = new List<Movie>();
-
-            if (order.ToString().Equals("Rating"))
-            {
-                pagedMovies = query.OrderByDescending(m => m.Rating)
-                    .Skip((paginationParams.PageNumber - 1) * paginationParams.PageSize)
-                    .Take(paginationParams.PageSize)
-                    .ToList();
-            }
-            else if (order.ToString().Equals("Alphabetic"))
-            {
-                pagedMovies = query.OrderBy(m => m.Title)
-                    .Skip((paginationParams.PageNumber - 1) * paginationParams.PageSize)
-                    .Take(paginationParams.PageSize)
-                    .ToList();
-            }
-
-            var mmappedMovies = pagedMovies.Select(m => MovieMapper.EntityToResponse(m));
+            var mmappedMovies = movies.Items?.Select(m => MovieMapper.EntityToResponse(m)).ToList() ?? new List<MovieResponseDTO>();
 
             return new PagedResult<MovieResponseDTO>
             {
                 Items = mmappedMovies,
-                TotalItems = totalItems,
-                PageNumber = paginationParams.PageNumber,
-                PageSize = paginationParams.PageSize
+                TotalItems = movies.TotalItems,
+                PageNumber = movies.PageNumber,
+                PageSize = movies.PageSize
             };
         }
 
