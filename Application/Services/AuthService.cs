@@ -26,7 +26,8 @@ namespace Application.Services
             string normalizedEmail = dto.Email.Trim().ToLower();
 
             bool emailAreadyExists = await _userRepository.UserExistsByEmail(normalizedEmail);
-            if (emailAreadyExists) throw new ConflictException("Email already in use.");
+            if (emailAreadyExists) 
+                throw new ConflictException("Email already in use.");
 
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
             var userEntity = AuthMapper.RegisterToEntity(dto, normalizedEmail, passwordHash);
@@ -43,7 +44,11 @@ namespace Application.Services
             var normalizedEmail = dto.Email.Trim().ToLower();
 
             var user = await _userRepository.FindUserByEmail(normalizedEmail);
-            if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.Password)) throw new UnauthorizedAccessException("Invalid credentials."); // reslver esse if
+
+            var passwordIsValid = BCrypt.Net.BCrypt.Verify(dto.Password, user.Password);
+
+            if (user == null || !passwordIsValid)
+                throw new UnauthorizedAccessException("Invalid credentials.");
 
             return _jwtService.GenerateToken(user);
         }

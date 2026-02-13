@@ -6,8 +6,6 @@ using Application.Mappers;
 using Domain.Enums;
 using Domain.Exceptions;
 using Domain.Interface.Repositories;
-using Microsoft.AspNetCore.Http;
-using System.Security.Claims;
 
 namespace Application.Services
 {
@@ -52,7 +50,8 @@ namespace Application.Services
         public async Task<UserResponse?> GetUserById(int id)
         {
             var user = await _userRepository.GetUserByIdAsync(id);
-            if (user == null) throw new ResourceNotFoundException($"User not found by id {id}.");
+            if (user == null)
+                throw new ResourceNotFoundException($"User not found by id {id}.");
 
             return UserMapper.ToUserResponse(user);
         }
@@ -60,7 +59,8 @@ namespace Application.Services
         public async Task<bool> DeactivateUser(int id)
         {
             var user = await _userRepository.GetUserByIdAsync(id);
-            if (user == null) throw new ResourceNotFoundException($"User not found by id {id}.");
+            if (user == null)
+                throw new ResourceNotFoundException($"User not found by id {id}.");
             user.IsActive = false;
             await _userRepository.DeactivateUser(user);
 
@@ -70,7 +70,8 @@ namespace Application.Services
         public async Task<bool> DeactivateMe(int userId)
         {
             var user = await _userRepository.GetUserByIdAsync(userId);
-            if (user == null) throw new ResourceNotFoundException($"User not found by id {userId}.");
+            if (user == null) 
+                throw new ResourceNotFoundException($"User not found by id {userId}.");
             user.IsActive = false;
             await _userRepository.DeactivateUser(user);
 
@@ -80,18 +81,17 @@ namespace Application.Services
         public async Task<UserResponse> UpdateUser(int id, UpdateUserRequestDTO dto, int loggedUser)
         {
             var user = await _userRepository.GetUserByIdAsync(id);
-            if (user == null) throw new ResourceNotFoundException($"User not found by id {id}.");
+            if (user == null) 
+                throw new ResourceNotFoundException($"User not found by id {id}.");
 
-            if (loggedUser != id) throw new ForbiddenException("You cannot update other users data.");
+            if (loggedUser != id) 
+                throw new ForbiddenException("You cannot update other users data.");
 
             if (dto.Name != "")
-            {
                 user.Name = dto.Name;
-            }
+
             if (dto.Password != "")
-            {
                 user.Password = BCrypt.Net.BCrypt.HashPassword(dto.Password);
-            }
 
             await _userRepository.UpdateUser(user);
 

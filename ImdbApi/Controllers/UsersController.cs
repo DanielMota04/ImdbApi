@@ -6,7 +6,6 @@ using Application.Interfaces;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace Api.Controllers
 {
@@ -57,7 +56,7 @@ namespace Api.Controllers
         }
 
         [Authorize]
-        [HttpDelete("/me")]
+        [HttpDelete("me")]
         public async Task<IActionResult> DeactivateMe()
         {
             var userId = User.GetUserId();

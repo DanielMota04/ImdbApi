@@ -9,8 +9,6 @@ using Domain.Interface.Repositories;
 using Domain.Models;
 using FluentValidation;
 using Domain.Exceptions;
-using Microsoft.AspNetCore.Http;
-using System.Security.Claims;
 
 namespace Application.Services
 {
@@ -27,14 +25,16 @@ namespace Application.Services
 
         public async Task<MovieDetailsResponseDTO> CreateMovie(CreateMovieRequestDTO dto)
         {
-            CreateMovieValidator validator = new CreateMovieValidator();
+            CreateMovieValidator validator = new();
             var title = dto.Title.Trim().Normalize();
             var genre = dto.Genre.Trim().Normalize();
             var director = dto.Director.Trim().Normalize();
 
             var actors = dto.Actors.Select(a => a.Trim().Normalize()).ToList();
 
-            if (await _movieRepository.FindMovieByTitle(title.ToLower())) throw new ConflictException("Movie name already exists.");
+            var movieExistsByTitle = await _movieRepository.FindMovieByTitle(title.ToLower());
+            if (movieExistsByTitle)
+                throw new ConflictException("Movie name already exists.");
 
             validator.ValidateAndThrow(dto);
 
@@ -99,7 +99,9 @@ namespace Application.Services
         public async Task<MovieDetailsResponseDTO> GetMovieById(int id)
         {
             var movie = await _movieRepository.FindMovieById(id);
-            if (movie == null) throw new ResourceNotFoundException($"Movie not found with id {id}.");
+            if (movie == null) 
+                throw new ResourceNotFoundException($"Movie not found with id {id}.");
+            
             return MovieMapper.EntityToDetails(movie);
         }
 
@@ -107,7 +109,9 @@ namespace Application.Services
         {
             var movie = await _movieRepository.FindMovieById(id);
 
-            if (movie == null) throw new ResourceNotFoundException($"Movie not found with id {id}.");
+            if (movie == null) 
+                throw new ResourceNotFoundException($"Movie not found with id {id}.");
+            
             await _movieRepository.DeleteMovie(movie);
 
             return true;
@@ -120,7 +124,8 @@ namespace Application.Services
             var movie = await _movieRepository.FindMovieById(vote.MovieId);
             var movieList = await _movieListRepository.FindMovieInListByMovieIdAndUserId(vote.MovieId, userId);
 
-            if (movieList.IsVoted) throw new ForbiddenException("You has already voted in this movie.");
+            if (movieList.IsVoted) 
+                throw new ForbiddenException("You has already voted in this movie.");
 
             validator.ValidateAndThrow(vote);
 

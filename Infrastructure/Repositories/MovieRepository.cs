@@ -15,18 +15,17 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Movie> CreateMovie(Movie m)
+        public async Task<Movie> CreateMovie(Movie movie)
         {
-            _context.Movies.Add(m);
+            _context.Movies.Add(movie);
             await _context.SaveChangesAsync();
-            return m;
+            return movie;
         }
 
-        public async Task<bool> DeleteMovie(Movie m)
+        public async void DeleteMovie(Movie movie)
         {
-            _context.Movies.Remove(m);
+            _context.Movies.Remove(movie);
             await _context.SaveChangesAsync();
-            return true;
         }
 
         public async Task<Movie?> FindMovieById(int id)
@@ -41,14 +40,13 @@ namespace Infrastructure.Repositories
 
         public async Task<IEnumerable<Movie>> GetAllMovies()
         {
-            return await _context.Movies.ToListAsync();
+            return await _context.Movies.AsNoTracking().ToListAsync();
         }
 
-        public async Task<bool> UpdateRating(Movie m)
+        public async void UpdateRating(Movie movie)
         {
-            var movie = _context.Movies.Update(m);
+            _context.Movies.Update(movie);
             await _context.SaveChangesAsync();
-            return true;
         }
     }
 }

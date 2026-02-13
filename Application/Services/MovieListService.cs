@@ -5,8 +5,6 @@ using Application.Mappers;
 using Domain.Interface.Repositories;
 using Domain.Models;
 using Domain.Exceptions;
-using Microsoft.AspNetCore.Http;
-using System.Security.Claims;
 
 namespace Application.Services
 {
@@ -29,7 +27,9 @@ namespace Application.Services
 
             var user = await _userService.GetUserById(userId);
 
-            if (movie == null) throw new ResourceNotFoundException("Movie not found");
+            if (movie == null)
+                throw new ResourceNotFoundException("Movie not found");
+            
             MovieList movieList = new()
             {
                 MovieId = movieId,
@@ -72,8 +72,11 @@ namespace Application.Services
         {
             var movieList = await _movieListRepository.FindMovieListById(id);
 
-            if (movieList == null) throw new ResourceNotFoundException("Movie not found.");
-            if (movieList.UserId != userId) throw new ForbiddenException("You can't remove a movie that is not in your list");
+            if (movieList == null) 
+                throw new ResourceNotFoundException("Movie not found.");
+            
+            if (movieList.UserId != userId) 
+                throw new ForbiddenException("You can't remove a movie that is not in your list");
 
             await _movieListRepository.RemoveMovieFromList(movieList);
 

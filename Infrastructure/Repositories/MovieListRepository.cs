@@ -14,11 +14,11 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<MovieList> CreateMovieList(MovieList ml)
+        public async Task<MovieList> CreateMovieList(MovieList movieList)
         {
-            _context.MovieLists.Add(ml);
+            _context.MovieLists.Add(movieList);
             await _context.SaveChangesAsync();
-            return ml;
+            return movieList;
         }
 
         public async Task<MovieList?> FindMovieInListByMovieIdAndUserId(int movieId, int userId)
@@ -36,25 +36,22 @@ namespace Infrastructure.Repositories
             return await _context.MovieLists.AnyAsync(ml => ml.UserId == userId);
         }
 
-        public async Task<IEnumerable<MovieList>> ListMoviesByUserId(int id)
+        public async Task<IEnumerable<MovieList>> ListMoviesByUserId(int userId)
         {
-            return await _context.MovieLists.Where(ml => ml.UserId == id).ToListAsync();
+            return await _context.MovieLists.Where(ml => ml.UserId == userId).AsNoTracking().ToListAsync();
         }
 
-        public async Task<bool> RemoveMovieFromList(MovieList ml)
+        public async void RemoveMovieFromList(MovieList movieList)
         {
-            _context.MovieLists.Remove(ml);
+            _context.MovieLists.Remove(movieList);
             await _context.SaveChangesAsync();
-            return true;
         }
 
-        public async Task<bool> UpdateIsVoted(MovieList ml)
+        public async void UpdateIsVoted(MovieList movieList)
         {
-            MovieList movielist = ml;
-            movielist.IsVoted = true;
-            _context.MovieLists.Update(movielist);
+            movieList.IsVoted = true;
+            _context.MovieLists.Update(movieList);
             await _context.SaveChangesAsync();
-            return true;
         }
     }
 }

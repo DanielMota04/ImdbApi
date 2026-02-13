@@ -16,7 +16,7 @@ namespace Infrastructure.Repositories
 
         public async Task<IEnumerable<User>> GetAllUsersAsync()
         {
-            var users = await _context.Users.ToListAsync();
+            var users = await _context.Users.AsNoTracking().ToListAsync();
             return users;
         }
         public async Task<User?> GetUserByIdAsync(int id)
