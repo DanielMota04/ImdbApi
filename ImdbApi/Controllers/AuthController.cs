@@ -28,5 +28,12 @@ namespace Api.Controllers
             var token = await _service.LoginAsync(dto);
             return HandleResult(token);
         }
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh([FromBody] string refreshToken)
+        {
+            var result = await _service.RefreshTokenAsync(refreshToken);
+            return Ok(result);
+        }
     }
 }

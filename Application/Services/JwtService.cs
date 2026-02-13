@@ -46,7 +46,7 @@ namespace Application.Services
             };
         }
 
-        private string GenerateRefreshToken()
+        public string GenerateRefreshToken()
         {
             var randomNumber = new byte[64];
             var rng = RandomNumberGenerator.Create();

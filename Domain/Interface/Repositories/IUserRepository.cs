@@ -13,5 +13,8 @@ namespace Domain.Interface.Repositories
         public Task<User> UpdateUser(User u);
         public Task<bool> UserExistsByEmail(string email);
         public Task<User?> FindUserByEmail(string email);
+        public Task SaveRefreshToken(RefreshToken token);
+        public Task<RefreshToken?> GetRefreshToken(string token);
+        public Task DeleteRefreshToken(RefreshToken token);
     }
 }

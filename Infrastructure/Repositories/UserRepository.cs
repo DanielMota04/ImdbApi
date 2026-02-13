@@ -76,5 +76,22 @@ namespace Infrastructure.Repositories
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
             return user;
         }
+
+        public async Task SaveRefreshToken(RefreshToken token)
+        {
+            _context.RefreshTokens.Add(token);
+            await _context.SaveChangesAsync();
+        }
+
+        public Task<RefreshToken?> GetRefreshToken(string token)
+        {
+            return _context.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == token);
+        }
+
+        public Task DeleteRefreshToken(RefreshToken token)
+        {
+            _context.RefreshTokens.Remove(token);
+            return _context.SaveChangesAsync();
+        }
     }
 }

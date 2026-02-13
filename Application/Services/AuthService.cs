@@ -3,10 +3,11 @@ using Application.DTOs.Response.Auth;
 using Application.Interfaces;
 using Application.Mappers;
 using Application.Validators;
-using Domain.Interface.Repositories;
-using FluentValidation;
-using FluentResults;
 using Domain.Errors;
+using Domain.Interface.Repositories;
+using Domain.Models;
+using FluentResults;
+using FluentValidation;
 
 namespace Application.Services
 {
@@ -40,21 +41,71 @@ namespace Application.Services
             return Result.Ok(AuthMapper.EntityToResponse(userEntity));
         }
 
-        public async Task<Result<string>> LoginAsync(AuthLoginRequestDTO dto)
+        public async Task<Result<AuthLoginResponseDTO>> LoginAsync(AuthLoginRequestDTO dto)
         {
             var normalizedEmail = dto.Email.Trim().ToLower();
 
             var user = await _userRepository.FindUserByEmail(normalizedEmail);
 
-            if (user == null)
+            if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.Password))
                 return Result.Fail(new UnauthorizedError("Invalid credentials."));
 
-            var passwordIsValid = BCrypt.Net.BCrypt.Verify(dto.Password, user.Password);
 
-            if (!passwordIsValid)
-                return Result.Fail(new UnauthorizedError("Invalid credentials."));
+            var accessToken = _jwtService.GenerateToken(user).AccessToken;
+            var refreshTokenValue = _jwtService.GenerateRefreshToken();
 
-            return Result.Ok(_jwtService.GenerateToken(user));
+            var refreshTokenEntity = new RefreshToken
+            {
+                Token = refreshTokenValue,
+                Expires = DateTime.UtcNow.AddDays(7),
+                UserId = user.Id
+            };
+            await _userRepository.SaveRefreshToken(refreshTokenEntity);
+
+            return new AuthLoginResponseDTO
+            {
+                Id = user.Id,
+                Name = user.Name,
+                AccessToken = accessToken,
+                RefreshToken = refreshTokenValue
+            };
+        }
+
+        public async Task<Result<AuthLoginResponseDTO>> RefreshTokenAsync(string token)
+        {
+            var savedToken = await _userRepository.GetRefreshToken(token);
+
+            if (savedToken == null || savedToken.IsExpired)
+                return Result.Fail(new UnauthorizedError("Refresh token invalid or expired."));
+
+            var user = await _userRepository.GetUserByIdAsync(savedToken.UserId);
+
+            await _userRepository.DeleteRefreshToken(savedToken);
+
+            return await GenerateAuthResponse(user!);
+        }
+
+        private async Task<AuthLoginResponseDTO> GenerateAuthResponse(User user)
+        {
+            var accessToken = _jwtService.GenerateToken(user).AccessToken;
+            var refreshTokenValue = _jwtService.GenerateRefreshToken();
+
+            var refreshTokenEntity = new RefreshToken
+            {
+                Token = refreshTokenValue,
+                Expires = DateTime.UtcNow.AddDays(7),
+                UserId = user.Id
+            };
+
+            await _userRepository.SaveRefreshToken(refreshTokenEntity);
+
+            return new AuthLoginResponseDTO
+            {
+                Id = user.Id,
+                Name = user.Name,
+                AccessToken = accessToken,
+                RefreshToken = refreshTokenValue
+            };
         }
     }
 }
