@@ -70,10 +70,10 @@ namespace Application.Services
 
             var user = await _userService.GetUserById(userId);
 
-            if (movie == null)
+            if (movie.IsFailed)
                 return Result.Fail(new NotFoundError("Movie not found"));
 
-            if (user == null)
+            if (user.IsFailed)
                 return Result.Fail(new NotFoundError("User not found"));
 
             MovieList movieList = new()

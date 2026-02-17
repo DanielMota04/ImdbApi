@@ -62,13 +62,13 @@ namespace Application.Services
             };
             await _userRepository.SaveRefreshToken(refreshTokenEntity);
 
-            return new AuthLoginResponseDTO
+            return Result.Ok(new AuthLoginResponseDTO
             {
                 Id = user.Id,
                 Name = user.Name,
                 AccessToken = accessToken,
                 RefreshToken = refreshTokenValue
-            };
+            });
         }
 
         public async Task<Result<AuthLoginResponseDTO>> RefreshTokenAsync(string token)
