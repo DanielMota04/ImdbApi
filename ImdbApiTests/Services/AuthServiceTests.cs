@@ -1,9 +1,8 @@
 ﻿using Application.DTOs.Request.Auth;
+using Application.DTOs.Response.Auth;
 using Application.Interfaces;
-using Application.Mappers;
-using Application.Services;
 using Domain.Enums;
-using Domain.Exceptions;
+using Domain.Errors;
 using Domain.Interface.Repositories;
 using Domain.Models;
 
@@ -11,155 +10,135 @@ namespace ImdbApiTests.Services
 {
     public class AuthServiceTests
     {
-        private readonly AuthMapper _mapper;
-        private readonly Mock<IJwtService> _jwtServiceMock;
-        private readonly Mock<IUserRepository> _userRepositoryMock;
-
+        private readonly IJwtService _jwtServiceMock;
+        private readonly IUserRepository _userRepositoryMock;
         private readonly AuthService _authService;
 
         public AuthServiceTests()
         {
-            _mapper = new AuthMapper();
-            _jwtServiceMock = new Mock<IJwtService>();
-            _userRepositoryMock = new Mock<IUserRepository>();
-
-            _authService = new AuthService(_mapper, _jwtServiceMock.Object, _userRepositoryMock.Object);
+            _jwtServiceMock = Substitute.For<IJwtService>();
+            _userRepositoryMock = Substitute.For<IUserRepository>();
+            _authService = new AuthService(_jwtServiceMock, _userRepositoryMock);
         }
 
+        // RegisterAsync
         [Fact]
-        public async Task RegisterAsync_WhenEmailIsAlreadyRegistered_ThrowException()
+        public async Task RegisterAsync_WhenEmailIsAlreadyRegistered_ReturnFail()
         {
-            AuthRegisterRequestDTO dto = new()
-            {
-                Name = "username",
-                Email = "user@email.com",
-                Password = "123",
-                Role = Roles.Admin
-            };
+            var email = authRegisterRequestDTO.Email;
+            _userRepositoryMock.UserExistsByEmail(email).Returns(true);
 
-            _userRepositoryMock.Setup(repo => repo.UserExistsByEmail(dto.Email)).ReturnsAsync(true);
+            var result = await _authService.RegisterAsync(authRegisterRequestDTO);
 
-            await Assert.ThrowsAsync<ConflictException>(() => _authService.RegisterAsync(dto));
+            Assert.True(result.IsFailed);
+            Assert.Equal("Email already exists", result.Errors.First().Message);
 
-            _userRepositoryMock.Verify(x => x.CreateUser(It.IsAny<User>()), Times.Never);
+            await _userRepositoryMock
+                .DidNotReceive()
+                .CreateUser(Arg.Any<User>());
         }
 
         [Fact]
         public async Task RegisterAsync_WhenEmailIsNotRegistered_ReturnAuthResponse()
         {
-            int userId = 1;
+            var email = authRegisterRequestDTO.Email;
+            _userRepositoryMock.UserExistsByEmail(email).Returns(false);
 
-            AuthRegisterRequestDTO dto = new()
-            {
-                Name = "username",
-                Email = "user@email.com",
-                Password = "123",
-                Role = Roles.Admin
-            };
+            var result = await _authService.RegisterAsync(authRegisterRequestDTO);
 
-            User user = new()
-            {
-                Id = userId,
-                Name = "username",
-                Email = "user@email.com",
-                Password = "123456",
-                Role = Roles.Admin,
-                IsActive = false
-            };
+            Assert.True(result.IsSuccess);
+            Assert.Equal(authRegisterRequestDTO.Name, result.Value.Name);
 
-            _userRepositoryMock.Setup(repo => repo.UserExistsByEmail(dto.Email)).ReturnsAsync(false);
+            await _userRepositoryMock
+                .Received(1)
+                .CreateUser(Arg.Any<User>());
+        }
 
-            var result = await _authService.RegisterAsync(dto);
-            Assert.NotNull(result);
-            Assert.Equal(0, result.Id);
-            Assert.Equal(user.Name, result.Name);
-            Assert.Equal(user.Email, result.Email);
-            Assert.Equal(user.Role, result.Role);
+        // LoginAsync
+        [Fact]
+        public async Task LoginAsync_WhenUserDoesNotExist_ReturnUnauthorized()
+        {
+            string email = "emailTest@email.com";
+            _userRepositoryMock.FindUserByEmail(email).Returns(null as User);
 
-            _userRepositoryMock.Verify(x => x.CreateUser(It.IsAny<User>()), Times.Once);
+            var result = await _authService.LoginAsync(authLoginRequestDTO);
+
+            Assert.True(result.IsFailed);
+            Assert.Equal("Invalid credentials.", result.Errors.First().Message);
+
+            await _userRepositoryMock
+                .DidNotReceive()
+                .SaveRefreshToken(Arg.Any<RefreshToken>());
         }
 
         [Fact]
-        public async Task LoginAsync_WhenUserNotFound_ThrowException()
+        public async Task LoginAsync_WhenPasswordIsIncorrect_ReturnFail()
         {
-            AuthLoginRequestDTO dto = new()
-            {
-                Email = "user@email.com",
-                Password = "123456"
-            };
+            var email = user.Email;
+            _userRepositoryMock.FindUserByEmail(email).Returns(user);
 
-            _userRepositoryMock.Setup(repo => repo.FindUserByEmail(dto.Email)).ReturnsAsync((User)null);
+            var result = await _authService.LoginAsync(authLoginRequestDTOWithWrongPassword);
 
-            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _authService.LoginAsync(dto));
+            Assert.True(result.IsFailed);
+            Assert.Equal("Invalid credentials.", result.Errors.First().Message);
 
-            _jwtServiceMock.Verify(x => x.GenerateToken(It.IsAny<User>()), Times.Never);
+            await _userRepositoryMock
+                .DidNotReceive()
+                .SaveRefreshToken(Arg.Any<RefreshToken>());
         }
 
         [Fact]
-        public async Task LoginAsync_WhenPasswordIsIncorrect_ThrowException()
+        public async Task LoginAsync_WhenCredentialsAreValid_ReturnSuccess()
         {
-            int userId = 1;
+            var email = authLoginRequestDTO.Email;
+            var password = authLoginRequestDTO.Password;
 
-            AuthLoginRequestDTO dto = new()
-            {
-                Email = "user@email.com",
-                Password = "123456"
-            };
+            _userRepositoryMock.FindUserByEmail(email).Returns(user);
 
-            string hashedPassword = BCrypt.Net.BCrypt.HashPassword("password");
+            _jwtServiceMock.GenerateToken(user).Returns(tokenResponse);
 
-            User user = new()
-            {
-                Id = userId,
-                Name = "username",
-                Email = "user@email.com",
-                Password = hashedPassword,
-                Role = Roles.Admin,
-                IsActive = false
-            };
+            var result = await _authService.LoginAsync(authLoginRequestDTO);
 
-            _userRepositoryMock.Setup(repo => repo.FindUserByEmail(dto.Email)).ReturnsAsync(user);
-
-            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _authService.LoginAsync(dto));
-
-            _jwtServiceMock.Verify(x => x.GenerateToken(It.IsAny<User>()), Times.Never);
+            Assert.True(result.IsSuccess);
+            Assert.Equal("access-token", result.Value.AccessToken);
+            await _userRepositoryMock
+                .Received(1)
+                .SaveRefreshToken(Arg.Any<RefreshToken>());
         }
 
-        [Fact]
-        public async Task LoginAsync_WhenCredentialsAreValid_ReturnToken()
+
+        private AuthRegisterRequestDTO authRegisterRequestDTO = new()
         {
-            int userId = 1;
-            string password = "123456";
+            Name = "username",
+            Email = "user@email.com",
+            Password = "123",
+            Role = Roles.Admin
+        };
 
-            AuthLoginRequestDTO dto = new()
-            {
-                Email = "user@email.com",
-                Password = password
-            };
+        private AuthLoginRequestDTO authLoginRequestDTO = new()
+        {
+            Email = "user@email.com",
+            Password = "123456"
+        };
 
-            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
+        private AuthLoginRequestDTO authLoginRequestDTOWithWrongPassword = new()
+        {
+            Email = "user@email.com",
+            Password = "000000"
+        };
 
-            string token = "returnToken";
+        private User user = new()
+        {
+            Id = 1,
+            Name = "username",
+            Email = "user@email.com",
+            Password = BCrypt.Net.BCrypt.HashPassword("123456")
+        };
 
-            User user = new()
-            {
-                Id = userId,
-                Name = "username",
-                Email = "user@email.com",
-                Password = hashedPassword,
-                Role = Roles.Admin,
-                IsActive = true
-            };
-
-            _userRepositoryMock.Setup(repo => repo.FindUserByEmail(dto.Email)).ReturnsAsync(user);
-            _jwtServiceMock.Setup(service => service.GenerateToken(user)).Returns(token);
-
-            var result = await _authService.LoginAsync(dto);
-
-            Assert.NotNull(result);
-            Assert.Equal(token, result);
-
-            _jwtServiceMock.Verify(x => x.GenerateToken(It.IsAny<User>()), Times.Once);
-        }
+        private TokenResponse tokenResponse = new()
+        {
+            AccessToken = "access-token",
+            RefreshToken = "refresh-token"
+        };
     }
 }

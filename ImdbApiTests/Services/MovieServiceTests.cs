@@ -1,236 +1,252 @@
-﻿using Application.Mappers;
-using Application.Services;
-using Domain.Exceptions;
+﻿using Application.DTOs.Request.Movie;
 using Domain.Interface.Repositories;
 using Domain.Models;
-using Application.DTOs.Request.Movie;
-using Microsoft.AspNetCore.Http;
-using System.Security.Claims;
-
 
 namespace ImdbApiTests.Services
 {
     public class MovieServiceTests
     {
-        private readonly MovieMapper _mapper;
-        private readonly Mock<IMovieRepository> _movieRepositoryMock;
-        private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
-        private readonly Mock<IMovieListRepository> _movieListRepositoryMock;
+        private readonly IMovieRepository _movieRepositoryMock;
+        private readonly IMovieListRepository _movieListRepositoryMock;
 
         private readonly MovieService _movieService;
 
         public MovieServiceTests()
         {
-            _mapper = new MovieMapper();
-            _movieRepositoryMock = new Mock<IMovieRepository>();
-            _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-            _movieListRepositoryMock = new Mock<IMovieListRepository>();
+            _movieRepositoryMock = Substitute.For<IMovieRepository>();
+            _movieListRepositoryMock = Substitute.For<IMovieListRepository>();
 
             _movieService = new MovieService
-                (_mapper, _movieRepositoryMock.Object, _httpContextAccessorMock.Object, _movieListRepositoryMock.Object);
+                (_movieRepositoryMock, _movieListRepositoryMock);
         }
 
-        private void MockUserLogin(string userId)
-        {
-            var context = new DefaultHttpContext();
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, userId)
-            };
-
-            var identity = new ClaimsIdentity(claims, "TestAuthType");
-            var claimsPrincipal = new ClaimsPrincipal(identity);
-
-            context.User = claimsPrincipal;
-
-            _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
-        }
-
+        // CreateMovie
         [Fact]
-        public async Task CreateMovie_WhenTitleExists_ThrowException()
+        public async Task CreateMovie_WhenTitleAlreadyExists_ReturnFail()
         {
-            var movie = new CreateMovieRequestDTO
-            {
-                Title = "O poderoso chefão",
-                Genre = "Drama",
-                Director = "Francis ford copolla",
-                Actors = new List<string> 
-                {
-                    "Marlon Brando", "Al Pacino", "James Caan" 
-                }
-            };
-            _movieRepositoryMock.Setup(repo => repo.FindMovieByTitle("o poderoso chefão")).ReturnsAsync(true);
+            _movieRepositoryMock.FindMovieByTitle("o poderoso chefão").Returns(true);
 
-            await Assert.ThrowsAsync<ConflictException>(() => _movieService.CreateMovie(movie));
+            var result = await _movieService.CreateMovie(createMovieRequestDTO);
 
-            _movieRepositoryMock.Verify(x => x.CreateMovie(It.IsAny<Movie>()), Times.Never);
+            Assert.True(result.IsFailed);
+            Assert.Equal("Movie name already exists.", result.Errors.First().Message);
+
+            await _movieRepositoryMock
+                .DidNotReceive()
+                .CreateMovie(Arg.Any<Movie>());
         }
-        
+
         [Fact]
         public async Task CreateMovie_WhenTitleDoesNotExists_ReturnMovie()
         {
-            var movie = new CreateMovieRequestDTO
-            {
-                Title = "O poderoso chefão",
-                Genre = "Drama",
-                Director = "Francis ford copolla",
-                Actors = new List<string>
-                {
-                    "Marlon Brando", "Al Pacino", "James Caan"
-                }
-            };
-            _movieRepositoryMock.Setup(repo => repo.FindMovieByTitle("o poderoso chefão")).ReturnsAsync(false);
+            _movieRepositoryMock.FindMovieByTitle("o poderoso chefão").Returns(false);
 
-            var entity = new Movie
-            {
-                Id = 1,
-                Title = "O poderoso chefão",
-                Genre = "Drama",
-                Rating = 0.0,
-                Director = "Francis ford copolla",
-                Actors = new List<string>
-                {
-                    "Marlon Brando", "Al Pacino", "James Caan"
-                }
-            };
-            _movieRepositoryMock.Setup(repo => repo.CreateMovie(It.IsAny<Movie>())).ReturnsAsync(entity);
+            _movieRepositoryMock.CreateMovie(Arg.Any<Movie>()).Returns(movieEntity);
 
-            var result = await _movieService.CreateMovie(movie);
+            var result = await _movieService.CreateMovie(createMovieRequestDTO);
 
+            Assert.True(result.IsSuccess);
             Assert.NotNull(result);
-            Assert.Equal(0, result.Id);
-            Assert.Equal("O poderoso chefão", result.Title);
+            Assert.Equal(0, result.Value.Id);
+            Assert.Equal("O poderoso chefão", result.Value.Title);
 
-            _movieRepositoryMock.Verify(x => x.CreateMovie(It.IsAny<Movie>()), Times.Once);
+            await _movieRepositoryMock
+                .Received(1)
+                .CreateMovie(Arg.Any<Movie>());
+        }
+
+        // GetMovieById
+        [Fact]
+        public async Task GetMovieById_WhenMovieDoesNotExists_ReturnFail()
+        {
+            int movieId = 99;
+            _movieRepositoryMock.FindMovieById(movieId).Returns(null as Movie);
+
+            var result = await _movieService.GetMovieById(movieId);
+
+            Assert.True(result.IsFailed);
+
+            await _movieRepositoryMock
+                .Received(1)
+                .FindMovieById(movieId);
         }
 
         [Fact]
-        public async Task DeleteMovie_WhenMovieExists_ReturnTrue()
+        public async Task GetMovieById_WhenMovieExists_ReturnMovie()
         {
-            int movieId = 1;
-            var movie = new Movie
-            {
-                Id = 1,
-                Title = "O poderoso chefão",
-                Genre = "Drama",
-                Rating = 0.0,
-                Director = "Francis ford copolla",
-                Actors = new List<string>
-                {
-                    "Marlon Brando", "Al Pacino", "James Caan"
-                }
-            };
+            int movieId = movieEntity.Id;
+            _movieRepositoryMock.FindMovieById(movieId).Returns(movieEntity);
 
-            _movieRepositoryMock.Setup(repo => repo.FindMovieById(movieId)).ReturnsAsync(movie);
-            _movieRepositoryMock.Setup(repo => repo.DeleteMovie(movie)).ReturnsAsync(true);
+            var result = await _movieService.GetMovieById(movieId);
+
+            Assert.True(result.IsSuccess);
+            Assert.NotNull(result);
+            Assert.Equal(movieId, result.Value.Id);
+            Assert.Equal(movieEntity.Title, result.Value.Title);
+
+            await _movieRepositoryMock
+                .Received(1)
+                .FindMovieById(movieId);
+        }
+
+        // DeleteMovie
+        [Fact]
+        public async Task DeleteMovie_WhenMovieDoesNotExists_ReturnFail()
+        {
+            int movieId = 99;
+            _movieRepositoryMock.FindMovieById(movieId).Returns(null as Movie);
 
             var result = await _movieService.DeleteMovie(movieId);
 
-            Assert.True(result);
+            Assert.True(result.IsFailed);
+            Assert.Equal($"Movie not found with id {movieId}.", result.Errors.First().Message);
 
-            _movieRepositoryMock.Verify(x => x.DeleteMovie(movie), Times.Once);
+            _movieRepositoryMock
+                .DidNotReceive()
+                .DeleteMovie(Arg.Any<Movie>());
         }
 
         [Fact]
-        public async Task DeleteMovie_WhenMovieDoesNotExists_ThrowException()
+        public async Task DeleteMovie_WhenMovieExists_ReturnSuccess()
         {
-            int movieId = 99;
+            int movieId = movieEntity.Id;
+            _movieRepositoryMock.FindMovieById(movieId).Returns(movieEntity);
 
-            _movieRepositoryMock.Setup(repo => repo.FindMovieById(movieId)).ReturnsAsync((Movie)null);
+            var result = await _movieService.DeleteMovie(movieId);
 
-            await Assert.ThrowsAsync<ResourceNotFoundException>(() => _movieService.DeleteMovie(movieId));
+            Assert.True(result.IsSuccess);
 
-            _movieRepositoryMock.Verify(x => x.DeleteMovie(It.IsAny<Movie>()), Times.Never);
+            _movieRepositoryMock
+                .Received(1)
+                .DeleteMovie(Arg.Any<Movie>());
+        }
+
+
+        // Vote
+        [Fact]
+        public async Task Vote_WhenMovieDoesNotExists_ReturnFail()
+        {
+            int movieId = voteMovieRequestDTO.MovieId;
+            int userId = 1;
+            _movieRepositoryMock.FindMovieById(movieId).Returns(null as Movie);
+
+            var result = await _movieService.Vote(voteMovieRequestDTO, userId);
+
+            Assert.True(result.IsFailed);
+            Assert.Equal("Movie not found in your list.", result.Errors.First().Message);
+
+            _movieRepositoryMock
+                .DidNotReceive()
+                .UpdateRating(Arg.Any<Movie>());
+        }
+
+        [Fact]
+        public async Task Vote_WhenMovieIsNotOnList_ReturnFail()
+        {
+            int movieId = voteMovieRequestDTO.MovieId;
+            int userId = 1;
+            _movieRepositoryMock.FindMovieById(movieId).Returns(movieEntity);
+
+            _movieListRepositoryMock.FindMovieInListByMovieIdAndUserId(movieId, userId).Returns(null as MovieList);
+
+            var result = await _movieService.Vote(voteMovieRequestDTO, userId);
+
+            Assert.True(result.IsFailed);
+            Assert.Equal("Movie not found in your list.", result.Errors.First().Message);
+
+            _movieRepositoryMock
+                .DidNotReceive()
+                .UpdateRating(Arg.Any<Movie>());
+        }
+
+        [Fact]
+        public async Task Vote_WhenUserAlreadyVoted_ReturnFail()
+        {
+            int movieId = voteMovieRequestDTO.MovieId;
+            int userId = 1;
+            _movieRepositoryMock.FindMovieById(movieId).Returns(movieEntity);
+
+            _movieListRepositoryMock.FindMovieInListByMovieIdAndUserId(movieId, userId).Returns(movieVoted);
+
+            var result = await _movieService.Vote(voteMovieRequestDTO, userId);
+
+            Assert.True(result.IsFailed);
+            Assert.Equal("You has already voted in this movie.", result.Errors.First().Message);
+
+            _movieRepositoryMock
+                .DidNotReceive()
+                .UpdateRating(Arg.Any<Movie>());
         }
 
         [Fact]
         public async Task Vote_WhenUserHasNotVotedYet_ShouldCalculateAndReturnRating()
         {
-            int userId = 5;
-            int movieId = 10;
-            double vote = 4.0;
-            var voteDto = new VoteMovieRequestDTO
-            {
-                MovieId = movieId,
-                Vote = vote
-            };
+            int movieId = voteMovieRequestDTO.MovieId;
+            int userId = 1;
+            _movieRepositoryMock.FindMovieById(movieId).Returns(movieEntity);
 
-            MockUserLogin(userId.ToString());
+            _movieListRepositoryMock.FindMovieInListByMovieIdAndUserId(movieId, userId).Returns(movieNotVoted);
 
-            var movie = new Movie
-            {
-                Id = movieId,
-                Title = "Clube da luta",
-                Rating = 0,
-                Genre = "Ação",
-                Director = "David Fincher",
-                Actors = new List<string>{
-                    "Brad pitt", "Edward Norton"
-                }
-            };
+            var result = await _movieService.Vote(voteMovieRequestDTO, userId);
 
-            _movieRepositoryMock.Setup(x => x.FindMovieById(movieId)).ReturnsAsync(movie);
+            Assert.True(result.IsSuccess);
+            Assert.Equal(4.0, result.Value);
 
-            var movieList = new MovieList
-            {
-                MovieListId = 1,
-                MovieId = movieId,
-                UserId = userId,
-                IsVoted = false
-            };
+            _movieRepositoryMock
+                .Received(1)
+                .UpdateRating(Arg.Any<Movie>());
 
-            _movieListRepositoryMock.Setup(x => x.FindMovieInListByMovieIdAndUserId(movieId, userId)).ReturnsAsync(movieList);
+            _movieListRepositoryMock
+                .Received(1)
+                .UpdateIsVoted(Arg.Any<MovieList>());
 
-            var result = await _movieService.Vote(voteDto);
-
-            Assert.NotNull(result);
-            Assert.Equal(4.0, result);
-
-            _movieRepositoryMock.Verify(x => x.UpdateRating(It.IsAny<Movie>()), Times.Once());
-            _movieListRepositoryMock.Verify(x => x.UpdateIsVoted(It.IsAny<MovieList>()), Times.Once());
         }
 
-        [Fact]
-        public async Task Vote_WhenUserAlreadyVoted_ThrowException()
+        private readonly Movie movieEntity = new()
         {
-            int userId = 5;
-            int movieId = 10;
-            double vote = 4.0;
-            var voteDto = new VoteMovieRequestDTO
-            {
-                MovieId = movieId,
-                Vote = vote
-            };
+            Id = 1,
+            Title = "O poderoso chefão",
+            Genre = "Drama",
+            Rating = 0.0,
+            Director = "Francis ford copolla",
+            Actors =
+                [
+                    "Marlon Brando", "Al Pacino", "James Caan"
+                ]
+        };
 
-            MockUserLogin(userId.ToString());
-
-            var movie = new Movie
-            {
-                Id = movieId,
-                Title = "Clube da luta",
-                Rating = 0,
-                Genre = "Ação",
-                Director = "David Fincher",
-                Actors = new List<string>{
-                    "Brad pitt", "Edward Norton"
+        private readonly CreateMovieRequestDTO createMovieRequestDTO = new()
+        {
+            Title = "O poderoso chefão",
+            Genre = "Drama",
+            Director = "Francis ford copolla",
+            Actors = new List<string>
+                {
+                    "Marlon Brando", "Al Pacino", "James Caan"
                 }
-            };
+        };
 
-            _movieRepositoryMock.Setup(x => x.FindMovieById(movieId)).ReturnsAsync(movie);
+        private readonly VoteMovieRequestDTO voteMovieRequestDTO = new()
+        {
+            MovieId = 10,
+            Vote = 4.0
+        };
 
-            var movieList = new MovieList
-            {
-                MovieListId = 1,
-                MovieId = movieId,
-                UserId = userId,
-                IsVoted = true
-            };
+        private readonly MovieList movieVoted = new()
+        {
+            MovieListId = 1,
+            UserId = 1,
+            MovieId = 10,
+            IsVoted = true
+        };
 
-            _movieListRepositoryMock.Setup(x => x.FindMovieInListByMovieIdAndUserId(movieId, userId)).ReturnsAsync(movieList);
+        private readonly MovieList movieNotVoted = new()
+        {
+            MovieListId = 1,
+            UserId = 1,
+            MovieId = 10,
+            IsVoted = false
+        };
 
-            await Assert.ThrowsAsync<ForbiddenException>(() => _movieService.Vote(voteDto));
-
-            _movieRepositoryMock.Verify(x => x.UpdateRating(It.IsAny<Movie>()), Times.Never());
-        }
     }
 }

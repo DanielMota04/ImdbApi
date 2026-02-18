@@ -1,4 +1,3 @@
-using Application.DTOs.Pagination;
 using Application.DTOs.Request.Movie;
 using Application.DTOs.Response.Movie;
 using Application.Interfaces;
@@ -6,137 +5,104 @@ using Application.Mappers;
 using Application.Validators;
 using Domain.Enums;
 using Domain.Interface.Repositories;
-using Domain.Models;
 using FluentValidation;
-using Domain.Exceptions;
-using Microsoft.AspNetCore.Http;
-using System.Security.Claims;
+using Domain.Models.Pagination;
+using FluentResults;
+using Domain.Errors;
 
 namespace Application.Services
 {
     public class MovieService : IMovieService
     {
-        private readonly MovieMapper _mapper;
         private readonly IMovieRepository _movieRepository;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMovieListRepository _movieListRepository;
 
-        public MovieService(MovieMapper mapper, IMovieRepository movieRepository, IHttpContextAccessor httpContextAccessor, IMovieListRepository movieListRepository)
+        public MovieService(IMovieRepository movieRepository, IMovieListRepository movieListRepository)
         {
-            _mapper = mapper;
             _movieRepository = movieRepository;
-            _httpContextAccessor = httpContextAccessor;
             _movieListRepository = movieListRepository;
         }
 
-        public async Task<MovieDetailsResponseDTO> CreateMovie(CreateMovieRequestDTO dto)
+        public async Task<Result<MovieDetailsResponseDTO>> CreateMovie(CreateMovieRequestDTO dto)
         {
-            CreateMovieValidator validator = new CreateMovieValidator();
+            CreateMovieValidator validator = new();
             var title = dto.Title.Trim().Normalize();
             var genre = dto.Genre.Trim().Normalize();
             var director = dto.Director.Trim().Normalize();
 
             var actors = dto.Actors.Select(a => a.Trim().Normalize()).ToList();
 
-            if (await _movieRepository.FindMovieByTitle(title.ToLower())) throw new ConflictException("Movie name already exists.");
+            var movieExistsByTitle = await _movieRepository.FindMovieByTitle(title.ToLower());
+            if (movieExistsByTitle)
+                return Result.Fail(new ConflictError("Movie name already exists."));
 
             validator.ValidateAndThrow(dto);
 
-            var movie = _mapper.CreateToEntity(title, genre, actors, director);
+            var movie = MovieMapper.CreateToEntity(title, genre, actors, director);
             await _movieRepository.CreateMovie(movie);
 
-            return _mapper.EntityToDetails(movie);
+            return Result.Ok(MovieMapper.EntityToDetails(movie));
         }
 
-        public async Task<PagedResult<MovieResponseDTO>> GetAllMovies(PaginationParams paginationParams, string? title, string? director, string? genre, string? actor, MovieOrderBy order)
+        public async Task<Result<PagedResult<MovieResponseDTO>>> GetAllMovies(PaginationParams paginationParams, string? title, string? director, string? genre, string? actor, MovieOrderBy order)
         {
-            var allMovies = await _movieRepository.GetAllMovies();
-            var query = allMovies.AsQueryable();
+            var movies = await _movieRepository.GetAllMovies(paginationParams, title, director, genre, actor, order);
 
-            if (title != null)
-            {
-                query = query.Where(m => m.Title.Contains(title));
-            }
-            if (director != null)
-            {
-                query = query.Where(m => m.Director.Contains(director));
-            }
-            if (genre != null)
-            {
-                query = query.Where(m => m.Genre.Contains(genre));
-            }
-            if (actor != null)
-            {
-                query = query.Where(m => m.Actors.Contains(actor));
-            }
+            var mmappedMovies = movies.Items?.Select(m => MovieMapper.EntityToResponse(m)).ToList() ?? new List<MovieResponseDTO>();
 
-            var totalItems = query.Count();
-
-            List<Movie> pagedMovies = new List<Movie>();
-
-            if (order.ToString().Equals("Rating"))
-            {
-                pagedMovies = query.OrderByDescending(m => m.Rating)
-                    .Skip((paginationParams.PageNumber - 1) * paginationParams.PageSize)
-                    .Take(paginationParams.PageSize)
-                    .ToList();
-            }
-            else if (order.ToString().Equals("Alphabetic"))
-            {
-                pagedMovies = query.OrderBy(m => m.Title)
-                    .Skip((paginationParams.PageNumber - 1) * paginationParams.PageSize)
-                    .Take(paginationParams.PageSize)
-                    .ToList();
-            }
-
-            var mmappedMovies = pagedMovies.Select(m => _mapper.EntityToResponse(m));
-
-            return new PagedResult<MovieResponseDTO>
+            return Result.Ok(new PagedResult<MovieResponseDTO>
             {
                 Items = mmappedMovies,
-                TotalItems = totalItems,
-                PageNumber = paginationParams.PageNumber,
-                PageSize = paginationParams.PageSize
-            };
+                TotalItems = movies.TotalItems,
+                PageNumber = movies.PageNumber,
+                PageSize = movies.PageSize
+            });
         }
 
-        public async Task<MovieDetailsResponseDTO> GetMovieById(int id)
+        public async Task<Result<MovieDetailsResponseDTO>> GetMovieById(int id)
         {
             var movie = await _movieRepository.FindMovieById(id);
-            if (movie == null) throw new ResourceNotFoundException($"Movie not found with id {id}.");
-            return _mapper.EntityToDetails(movie);
+            if (movie == null)
+                return Result.Fail(new NotFoundError($"Movie not found with id {id}."));
+            
+            return Result.Ok(MovieMapper.EntityToDetails(movie));
         }
 
-        public async Task<bool> DeleteMovie(int id)
+        public async Task<Result<bool>> DeleteMovie(int id)
         {
             var movie = await _movieRepository.FindMovieById(id);
 
-            if (movie == null) throw new ResourceNotFoundException($"Movie not found with id {id}.");
-            await _movieRepository.DeleteMovie(movie);
+            if (movie == null)
+                return Result.Fail(new NotFoundError($"Movie not found with id {id}."));
 
-            return true;
+            _movieRepository.DeleteMovie(movie);
+
+            return Result.Ok(true);
         }
 
-        public async Task<double?> Vote(VoteMovieRequestDTO vote)
+        public async Task<Result<double>> Vote(VoteMovieRequestDTO vote, int userId)
         {
             VoteValidator validator = new VoteValidator();
 
             var movie = await _movieRepository.FindMovieById(vote.MovieId);
-            var userId = int.Parse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
             var movieList = await _movieListRepository.FindMovieInListByMovieIdAndUserId(vote.MovieId, userId);
 
-            if (movieList.IsVoted) throw new ForbiddenException("You has already voted in this movie.");
+            if (movie is null || movieList is null)
+                return Result.Fail(new NotFoundError("Movie not found in your list."));
+
+            if (movieList.IsVoted)
+                return Result.Fail(new ForbiddenError("You has already voted in this movie."));
 
             validator.ValidateAndThrow(vote);
 
             movie.TotalRating += vote.Vote;
             movie.Votes += 1;
             movie.Rating = movie.TotalRating / movie.Votes;
-            await _movieListRepository.UpdateIsVoted(movieList);
+            _movieListRepository.UpdateIsVoted(movieList);
 
-            await _movieRepository.UpdateRating(movie);
+            _movieRepository.UpdateRating(movie);
 
-            return movie.Rating;
+            return Result.Ok(movie.Rating);
         }
     }
 }

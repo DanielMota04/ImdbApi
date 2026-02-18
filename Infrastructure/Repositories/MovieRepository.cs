@@ -1,5 +1,7 @@
-﻿using Domain.Interface.Repositories;
+﻿using Domain.Enums;
+using Domain.Interface.Repositories;
 using Domain.Models;
+using Domain.Models.Pagination;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,18 +17,63 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Movie> CreateMovie(Movie m)
+        public async Task<PagedResult<Movie>> GetAllMovies(PaginationParams paginationParams, string? title, string? director, string? genre, string? actor, MovieOrderBy order)
         {
-            _context.Movies.Add(m);
-            await _context.SaveChangesAsync();
-            return m;
+            var query = _context.Movies.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(title))
+                query = query.Where(m => m.Title.Contains(title));
+            
+            if (!string.IsNullOrWhiteSpace(director))
+                query = query.Where(m => m.Director.Contains(director));
+            
+            if (!string.IsNullOrWhiteSpace(genre))
+                query = query.Where(m => m.Genre.Contains(genre));
+
+            if (!string.IsNullOrWhiteSpace(actor))
+                query = query.Where(m => m.Actors.Contains(actor));
+
+            query = order switch
+            {
+                MovieOrderBy.Alphabetic => query.OrderBy(m => m.Title),
+                MovieOrderBy.Rating => query.OrderByDescending(m => m.Rating),
+                _ => query
+            };
+
+            var totalItems = await query.CountAsync();
+
+            var items = await query
+                .Skip((paginationParams.PageNumber - 1) * paginationParams.PageSize)
+                .Take(paginationParams.PageSize)
+                .ToListAsync();
+
+            return new PagedResult<Movie>
+            {
+                Items = items,
+                TotalItems = totalItems,
+                PageNumber = paginationParams.PageNumber,
+                PageSize = paginationParams.PageSize
+            };
+        }
+        
+        public async Task<List<Movie>> GetMoviesByIds(List<int> movieIds)
+        {
+            return await _context.Movies
+                .Where(m => movieIds.Contains(m.Id))
+                .ToListAsync();
         }
 
-        public async Task<bool> DeleteMovie(Movie m)
+        public async Task<Movie> CreateMovie(Movie movie)
         {
-            _context.Movies.Remove(m);
+            _context.Movies.Add(movie);
             await _context.SaveChangesAsync();
-            return true;
+            return movie;
+        }
+
+        public async void DeleteMovie(Movie movie)
+        {
+            _context.Movies.Remove(movie);
+            await _context.SaveChangesAsync();
         }
 
         public async Task<Movie?> FindMovieById(int id)
@@ -39,16 +86,10 @@ namespace Infrastructure.Repositories
             return await _context.Movies.AnyAsync(m => m.Title == title);
         }
 
-        public async Task<IEnumerable<Movie>> GetAllMovies()
+        public async void UpdateRating(Movie movie)
         {
-            return await _context.Movies.ToListAsync();
-        }
-
-        public async Task<bool> UpdateRating(Movie m)
-        {
-            var movie = _context.Movies.Update(m);
+            _context.Movies.Update(movie);
             await _context.SaveChangesAsync();
-            return true;
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using Domain.Exceptions;
-using Application.DTOs.Response.Exceptions;
+﻿using Application.DTOs.Response.Exceptions;
 using System.Net;
 using System.Text.Json;
 
@@ -34,30 +33,6 @@ namespace Api.Middlewares
             
             switch (ex)
             {
-                case ConflictException:
-                    response.StatusCode = 409;
-                    response.Message = ex.Message;
-                    break;
-                case DomainException:
-                    response.StatusCode = 400;
-                    response.Message = ex.Message;
-                    break;
-                case ForbiddenException:
-                    response.StatusCode = 403;
-                    response.Message = ex.Message;
-                    break;
-                case ResourceNotFoundException:
-                    response.StatusCode = 404;
-                    response.Message = ex.Message;
-                    break;
-                case UnauthorizedAccessException:
-                    response.StatusCode = 401;
-                    response.Message = ex.Message;
-                    break;
-                case FluentValidation.ValidationException:
-                    response.StatusCode = (int)HttpStatusCode.BadRequest;
-                    response.Message = ex.Message;
-                    break;
                 default:
                     _logger.LogError(ex, "Internal error.");
                     response.StatusCode = (int)HttpStatusCode.InternalServerError;

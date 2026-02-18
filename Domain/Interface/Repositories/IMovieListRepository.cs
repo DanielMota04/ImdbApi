@@ -1,15 +1,16 @@
 ﻿using Domain.Models;
+using Domain.Models.Pagination;
 
 namespace Domain.Interface.Repositories
 {
     public interface IMovieListRepository
     {
-        public Task<MovieList> CreateMovieList(MovieList ml);
-        public Task<IEnumerable<MovieList>> ListMoviesByUserId(int id);
-        public Task<MovieList> FindMovieListById(int id);
-        public Task<bool> RemoveMovieFromList(MovieList ml);
+        public Task<PagedResult<MovieList>> ListMoviesByUserId(PaginationParams paginationParams, int userId);
+        public Task<MovieList?> FindMovieListById(int id);
+        public Task<MovieList> CreateMovieList(MovieList movieList);
+        public void RemoveMovieFromList(MovieList movieList);
+        public void UpdateIsVoted(MovieList movieList);
         public Task<bool> IsMovieOnUserList(int userId);
-        public Task<bool> UpdateIsVoted(MovieList ml);
         public Task<MovieList?> FindMovieInListByMovieIdAndUserId(int movieId, int userId);
     }
 }

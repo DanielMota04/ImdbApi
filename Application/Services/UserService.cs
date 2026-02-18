@@ -1,107 +1,91 @@
-﻿using Application.DTOs.Pagination;
-using Application.DTOs.Request.User;
+﻿using Application.DTOs.Request.User;
 using Application.DTOs.Response.User;
 using Application.Interfaces;
 using Application.Mappers;
 using Domain.Enums;
-using Domain.Exceptions;
+using Domain.Errors;
 using Domain.Interface.Repositories;
-using Microsoft.AspNetCore.Http;
-using System.Security.Claims;
+using Domain.Models.Pagination;
+using FluentResults;
 
 namespace Application.Services
 {
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
-        private readonly UserMapper _mapper;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        public UserService(IUserRepository userRepository, UserMapper mapper, IHttpContextAccessor httpContextAccessor)
+        public UserService(IUserRepository userRepository)
         {
             _userRepository = userRepository;
-            _mapper = mapper;
-            _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<PagedResult<UserResponse>> GetAllUsers(PaginationParams paginationParams, Roles? role)
+        public async Task<Result<PagedResult<UserResponse>>> GetAllUsers(PaginationParams paginationParams, Roles? role)
         {
-            var allUsers = await _userRepository.GetAllUsersAsync();
-            var query = allUsers.AsQueryable();
+            var pagedUsers = await _userRepository.GetAllUsersAsync(paginationParams, role);
 
-            query = query.Where(u => u.IsActive);
+            var mappedItems = pagedUsers.Items?.Select(u => UserMapper.ToUserResponse(u)).ToList() ?? new List<UserResponse>();
 
-            if (role.HasValue)
+            var result = new PagedResult<UserResponse>
             {
-                query = query.Where(u => u.Role.Equals(role));
-            }
-
-            var totalItems = query.Count();
-
-            var pagedUsers = query.OrderBy(u => u.Name)
-                .Skip((paginationParams.PageNumber - 1) * paginationParams.PageSize)
-                .Take(paginationParams.PageSize)
-                .ToList();
-
-            var mappedUsers = pagedUsers.Select(u => _mapper.ToUserResponse(u));
-
-            return new PagedResult<UserResponse>
-            {
-                Items = mappedUsers,
-                TotalItems = totalItems,
-                PageNumber = paginationParams.PageNumber,
-                PageSize = paginationParams.PageSize
+                Items = mappedItems,
+                TotalItems = pagedUsers.TotalItems,
+                PageNumber = pagedUsers.PageNumber,
+                PageSize = pagedUsers.PageSize
             };
+
+            return Result.Ok(result);
         }
 
-        public async Task<UserResponse?> GetUserById(int id)
+        public async Task<Result<UserResponse>> GetUserById(int id)
         {
             var user = await _userRepository.GetUserByIdAsync(id);
-            if (user == null) throw new ResourceNotFoundException($"User not found by id {id}.");
+            if (user == null)
+                return Result.Fail(new NotFoundError($"User not found by id {id}."));
 
-            return _mapper.ToUserResponse(user);
+            return Result.Ok(UserMapper.ToUserResponse(user));
         }
 
-        public async Task<bool> DeactivateUser(int id)
+        public async Task<Result<bool>> DeactivateUser(int id)
         {
             var user = await _userRepository.GetUserByIdAsync(id);
-            if (user == null) throw new ResourceNotFoundException($"User not found by id {id}.");
+            if (user == null)
+                return Result.Fail(new NotFoundError($"User not found by id {id}."));
+            
             user.IsActive = false;
             await _userRepository.DeactivateUser(user);
 
-            return true;
+            return Result.Ok(true);
         }
 
-        public async Task<bool> DeactivateMe()
+        public async Task<Result<bool>> DeactivateMe(int userId)
         {
-            var userId = int.Parse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
             var user = await _userRepository.GetUserByIdAsync(userId);
-            if (user == null) throw new ResourceNotFoundException($"User not found by id {userId}.");
+            if (user == null)
+                return Result.Fail(new NotFoundError($"User not found by id {userId}."));
+
             user.IsActive = false;
             await _userRepository.DeactivateUser(user);
 
-            return true;
+            return Result.Ok(true);
         }
 
-        public async Task<UserResponse> UpdateUser(int id, UpdateUserRequestDTO dto)
+        public async Task<Result<UserResponse>> UpdateUser(int id, UpdateUserRequestDTO dto, int loggedUser)
         {
             var user = await _userRepository.GetUserByIdAsync(id);
-            if (user == null) throw new ResourceNotFoundException($"User not found by id {id}.");
+            if (user == null)
+                return Result.Fail(new NotFoundError($"User not found by id {id}."));
 
-            var userId = int.Parse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            if (userId != id) throw new ForbiddenException("You cannot update other users data.");
+            if (loggedUser != id)
+                return Result.Fail(new ForbiddenError("You cannot update other users data."));
 
-            if (dto.Name != "")
-            {
+            if (!string.IsNullOrWhiteSpace(dto.Name))
                 user.Name = dto.Name;
-            }
-            if (dto.Password != "")
-            {
+
+            if (!string.IsNullOrWhiteSpace(dto.Password))
                 user.Password = BCrypt.Net.BCrypt.HashPassword(dto.Password);
-            }
 
             await _userRepository.UpdateUser(user);
 
-            return _mapper.ToUserResponse(user);
+            return Result.Ok(UserMapper.ToUserResponse(user));
 
         }
     }

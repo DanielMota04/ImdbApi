@@ -5,7 +5,7 @@ namespace Application.Mappers
 {
     public class MovieListMapper
     {
-        public MovieListResponseDTO EntityToResponse(MovieList entity, string username)
+        public static MovieListResponseDTO EntityToResponse(MovieList entity, string username)
         {
             MovieListResponseDTO dto = new()
             {

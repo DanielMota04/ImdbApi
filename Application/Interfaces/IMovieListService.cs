@@ -1,12 +1,13 @@
-﻿using Application.DTOs.Pagination;
-using Application.DTOs.Response.Movie;
+﻿using Application.DTOs.Response.Movie;
+using Domain.Models.Pagination;
+using FluentResults;
 
 namespace Application.Interfaces
 {
     public interface IMovieListService
     {
-        public Task<MovieListResponseDTO> AddMovieToList(int movieId);
-        public Task<bool> RemoveMovieFromList(int id);
-        public Task<PagedResult<MovieDetailsResponseDTO>> GetMovieList(PaginationParams paginationParams);
+        public Task<Result<MovieListResponseDTO>> AddMovieToList(int movieId, int userId);
+        public Task<Result<bool>> RemoveMovieFromList(int id, int userId);
+        public Task<Result<PagedResult<MovieDetailsResponseDTO>>> GetMovieList(PaginationParams paginationParams, int userId);
     }
 }

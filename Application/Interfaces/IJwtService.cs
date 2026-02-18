@@ -1,9 +1,11 @@
-﻿using Domain.Models;
+﻿using Application.DTOs.Response.Auth;
+using Domain.Models;
 
 namespace Application.Interfaces
 {
     public interface IJwtService
     {
-        public string GenerateToken(User user);
+        public TokenResponse GenerateToken(User user);
+        public string GenerateRefreshToken();
     }
 }

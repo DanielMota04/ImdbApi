@@ -1,187 +1,161 @@
 ﻿using Application.DTOs.Response.Movie;
 using Application.DTOs.Response.User;
 using Application.Interfaces;
-using Application.Mappers;
-using Application.Services;
 using Domain.Enums;
-using Domain.Exceptions;
+using Domain.Errors;
 using Domain.Interface.Repositories;
 using Domain.Models;
-using Microsoft.AspNetCore.Http;
-using System.Security.Claims;
+using FluentResults;
 
 namespace ImdbApiTests.Services
 {
     public class MovieListServiceTests
     {
-        private readonly MovieListMapper _mapper;
-        private readonly Mock<IMovieService> _movieServiceMock;
-        private readonly Mock<IUserService> _userServiceMock;
-        private readonly Mock<IMovieListRepository> _movieListRepositoryMock;
-        private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
+        private readonly IMovieService _movieServiceMock;
+        private readonly IUserService _userServiceMock;
+        private readonly IMovieListRepository _movieListRepositoryMock;
+        private readonly IMovieRepository _movieRepositoryMock;
 
         private readonly MovieListService _movieListService;
 
         public MovieListServiceTests()
         {
-            _mapper = new MovieListMapper();
-            _movieServiceMock = new Mock<IMovieService>();
-            _userServiceMock = new Mock<IUserService>();
-            _movieListRepositoryMock = new Mock<IMovieListRepository>();
-            _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-            _movieListService = new MovieListService(_mapper, _movieServiceMock.Object, _userServiceMock.Object, _movieListRepositoryMock.Object, _httpContextAccessorMock.Object);
+            _movieServiceMock = Substitute.For<IMovieService>();
+            _userServiceMock = Substitute.For<IUserService>();
+            _movieListRepositoryMock = Substitute.For<IMovieListRepository>();
+            _movieRepositoryMock = Substitute.For<IMovieRepository>();
+            _movieListService = new MovieListService(_movieServiceMock, _userServiceMock, _movieListRepositoryMock, _movieRepositoryMock);
         }
 
-        private void MockUserLogin(string userId)
+        // AddMovieToList
+        [Fact]
+        public async Task AddMovieToList_WhenMovieDoesNotExists_ReturnFail()
         {
-            var context = new DefaultHttpContext();
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, userId)
-            };
+            int movieId = 99;
+            int userId = 10;
+            _movieServiceMock.GetMovieById(movieId).Returns(Result.Fail<MovieDetailsResponseDTO>("Movie not found"));
 
-            var identity = new ClaimsIdentity(claims, "TestAuthType");
-            var claimsPrincipal = new ClaimsPrincipal(identity);
+            var result = await _movieListService.AddMovieToList(movieId, userId);
 
-            context.User = claimsPrincipal;
+            Assert.True(result.IsFailed);
+            Assert.Equal("Movie not found", result.Errors.First().Message);
 
-            _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
+            await _movieListRepositoryMock
+                .DidNotReceive()
+                .CreateMovieList(Arg.Any<MovieList>());
         }
 
         [Fact]
-        public async Task AddMovieToList_WhenMovieDoesNotExists_ThrowException()
+        public async Task AddMovieToList_WhenUserDoesNotExists_ReturnFail()
         {
-            int userId = 5;
-            int movieId = 99;
-            MockUserLogin(userId.ToString());
+            int movieId = 1;
+            int userId = 99;
+            _movieServiceMock.GetMovieById(movieId).Returns(movie);
+            _userServiceMock.GetUserById(userId).Returns(Result.Fail<UserResponse>("User not found"));
 
-            MovieList movieList = new()
-            {
-                MovieId = movieId,
-                UserId = userId
-            };
+            var result = await _movieListService.AddMovieToList(movieId, userId);
 
-            UserResponse user = new()
-            {
-                Id = userId,
-                Name = "username",
-                Role = Roles.Admin
-            };
+            Assert.True(result.IsFailed);
+            Assert.Equal("User not found", result.Errors.First().Message);
 
-            _movieServiceMock.Setup(service => service.GetMovieById(movieId)).ReturnsAsync((MovieDetailsResponseDTO)null);
-            _userServiceMock.Setup(service => service.GetUserById(userId)).ReturnsAsync(user);
-
-            await Assert.ThrowsAsync<ResourceNotFoundException>(() => _movieListService.AddMovieToList(movieId));
-
-            _movieListRepositoryMock.Verify(x => x.CreateMovieList(It.IsAny<MovieList>()), Times.Never);
+            await _movieListRepositoryMock
+                .DidNotReceive()
+                .CreateMovieList(Arg.Any<MovieList>());
         }
-
         [Fact]
         public async Task AddMovieToList_WhenMovieExists_ReturnsDTO()
         {
-            int userId = 5;
-            int movieId = 10;
-            MockUserLogin(userId.ToString());
+            int movieId = 1;
+            int userId = 10;
+            _movieServiceMock.GetMovieById(movieId).Returns(movie);
+            _userServiceMock.GetUserById(userId).Returns(user);
 
-            MovieList movieList = new()
-            {
-                MovieListId = 1,
-                MovieId = movieId,
-                UserId = userId
-            };
+            var result = await _movieListService.AddMovieToList(movieId, userId);
 
-            UserResponse user = new()
-            {
-                Id = userId,
-                Name = "username",
-                Role = Roles.Admin
-            };
+            Assert.True(result.IsSuccess);
+            Assert.NotNull(result);
 
-            MovieDetailsResponseDTO movie = new()
-            {
-                Title = "O poderoso chefão",
-                Genre = "Drama",
-                Rating = 0.0,
-                Director = "Francis ford copolla",
-                Actors = new List<string>
+            await _movieListRepositoryMock
+                .Received(1)
+                .CreateMovieList(Arg.Any<MovieList>());
+        }
+
+        // RemoveMovieFromList
+         [Fact]
+        public async Task RemoveMovieFromList_WhenMovieIsNotOnList_ReturnFail()
+        {
+            int movieListId = 99;
+            int userId = 99;
+
+            _movieListRepositoryMock.FindMovieListById(movieListId).Returns(null as MovieList);
+
+            var result = await _movieListService.RemoveMovieFromList(movieListId, userId);
+
+            Assert.True(result.IsFailed);
+            Assert.Equal("Movie List not found", result.Errors.First().Message);
+
+            _movieListRepositoryMock
+                .DidNotReceive()
+                .RemoveMovieFromList(Arg.Any<MovieList>());
+        }
+        [Fact]
+        public async Task RemoveMovieFromList_WhenMovieIsOnAnotherUserList_ReturnFail()
+        {
+            int movieListId = movieList.MovieListId;
+            int userId = 99;
+
+            _movieListRepositoryMock.FindMovieListById(movieListId).Returns(movieList);
+
+            var result = await _movieListService.RemoveMovieFromList(movieListId, userId);
+
+            Assert.True(result.IsFailed);
+            Assert.Equal("You can't remove a movie that is not in your list", result.Errors.First().Message);
+
+            _movieListRepositoryMock
+                .DidNotReceive()
+                .RemoveMovieFromList(Arg.Any<MovieList>());
+        }
+        [Fact]
+        public async Task RemoveMovieFromList_WhenMovieIsOnUserList_ReturnSuccess()
+        {
+            int movieListId = movieList.MovieListId;
+            int userId = movieList.UserId;
+
+            _movieListRepositoryMock.FindMovieListById(movieListId).Returns(movieList);
+
+            var result = await _movieListService.RemoveMovieFromList(movieListId, userId);
+
+            Assert.True(result.IsSuccess);
+
+            _movieListRepositoryMock
+                .Received(1)
+                .RemoveMovieFromList(Arg.Any<MovieList>());
+        }
+
+
+        private MovieList movieList = new()
+        {
+            MovieId = 5,
+            UserId = 10
+        };
+
+        private UserResponse user = new()
+        {
+            Id = 1,
+            Name = "username",
+            Role = Roles.Admin
+        };
+
+        private MovieDetailsResponseDTO movie = new()
+        {
+            Title = "O poderoso chefão",
+            Genre = "Drama",
+            Rating = 0.0,
+            Director = "Francis ford copolla",
+            Actors = new List<string>
                 {
                     "Marlon Brando", "Al Pacino", "James Caan"
                 }
-            };
-
-            _movieServiceMock.Setup(service => service.GetMovieById(movieId)).ReturnsAsync(movie);
-            _userServiceMock.Setup(service => service.GetUserById(userId)).ReturnsAsync(user);
-            _movieListRepositoryMock.Setup(repo => repo.CreateMovieList(It.IsAny<MovieList>())).ReturnsAsync(movieList);
-
-            var result = await _movieListService.AddMovieToList(movieId);
-
-            Assert.NotNull(result);
-            Assert.Equal(0, result.MovieListId);
-            Assert.Equal(movieId, result.MovieId);
-            Assert.Equal(user.Name, result.Username);
-
-            _movieListRepositoryMock.Verify(x => x.CreateMovieList(It.IsAny<MovieList>()), Times.Once);
-        }
-
-        [Fact]
-        public async Task RemoveMovieFromList_WhenMovieDoesNotExists_ThrowException()
-        {
-            int userId = 5;
-            int movieListId = 1;
-            MockUserLogin(userId.ToString());
-
-            _movieListRepositoryMock.Setup(repo => repo.FindMovieListById(movieListId)).ReturnsAsync((MovieList) null);
-
-            await Assert.ThrowsAsync<ResourceNotFoundException>(() => _movieListService.RemoveMovieFromList(movieListId));
-
-            _movieListRepositoryMock.Verify(x => x.RemoveMovieFromList(It.IsAny<MovieList>()), Times.Never);
-        }
-
-        [Fact]
-        public async Task RemoveMovieFromList_WhenMovieIsNotOnUserList_ThrowException()
-        {
-            int loggedUserId = 5;
-            int listUserId = 10;
-            int movieId = 10;
-            int movieListId = 1;
-            MockUserLogin(loggedUserId.ToString());
-
-            MovieList movieList = new()
-            {
-                MovieListId = 1,
-                MovieId = movieId,
-                UserId = listUserId
-            };
-
-            _movieListRepositoryMock.Setup(repo => repo.FindMovieListById(movieListId)).ReturnsAsync(movieList);
-
-            await Assert.ThrowsAsync<ForbiddenException>(() => _movieListService.RemoveMovieFromList(movieListId));
-
-            _movieListRepositoryMock.Verify(x => x.RemoveMovieFromList(It.IsAny<MovieList>()), Times.Never);
-        }
-
-        [Fact]
-        public async Task RemoveMovieFromList_WhenMovieExistsAndIsOnUserList_ReturnTrue()
-        {
-            int userId = 5;
-            int movieId = 10;
-            int movieListId = 1;
-            MockUserLogin(userId.ToString());
-
-            MovieList movieList = new()
-            {
-                MovieListId = 1,
-                MovieId = movieId,
-                UserId = userId
-            };
-
-            _movieListRepositoryMock.Setup(repo => repo.FindMovieListById(movieListId)).ReturnsAsync(movieList);
-
-            var result = await _movieListService.RemoveMovieFromList(movieListId);
-
-            Assert.True(result);
-
-            _movieListRepositoryMock.Verify(x => x.RemoveMovieFromList(It.IsAny<MovieList>()), Times.Once);
-        }
+        };
     }
 }

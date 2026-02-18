@@ -1,5 +1,6 @@
 ﻿using Domain.Interface.Repositories;
 using Domain.Models;
+using Domain.Models.Pagination;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,11 +15,32 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<MovieList> CreateMovieList(MovieList ml)
+        public async Task<PagedResult<MovieList>> ListMoviesByUserId(PaginationParams paginationParams, int userId)
         {
-            _context.MovieLists.Add(ml);
+            var query = _context.MovieLists.AsQueryable().Where(ml => ml.UserId == userId);
+
+            var totalItems = await query.CountAsync();
+
+            var items = await query
+                .OrderBy(ml => ml.MovieId)
+                .Skip((paginationParams.PageNumber - 1) * paginationParams.PageSize)
+                .Take(paginationParams.PageSize)
+                .ToListAsync();
+
+            return new PagedResult<MovieList>
+            {
+                Items = items,
+                TotalItems = totalItems,
+                PageNumber = paginationParams.PageNumber,
+                PageSize = paginationParams.PageSize
+            };
+        }
+
+        public async Task<MovieList> CreateMovieList(MovieList movieList)
+        {
+            _context.MovieLists.Add(movieList);
             await _context.SaveChangesAsync();
-            return ml;
+            return movieList;
         }
 
         public async Task<MovieList?> FindMovieInListByMovieIdAndUserId(int movieId, int userId)
@@ -36,25 +58,17 @@ namespace Infrastructure.Repositories
             return await _context.MovieLists.AnyAsync(ml => ml.UserId == userId);
         }
 
-        public async Task<IEnumerable<MovieList>> ListMoviesByUserId(int id)
+        public async void RemoveMovieFromList(MovieList movieList)
         {
-            return await _context.MovieLists.Where(ml => ml.UserId == id).ToListAsync();
+            _context.MovieLists.Remove(movieList);
+            await _context.SaveChangesAsync();
         }
 
-        public async Task<bool> RemoveMovieFromList(MovieList ml)
+        public async void UpdateIsVoted(MovieList movieList)
         {
-            _context.MovieLists.Remove(ml);
+            movieList.IsVoted = true;
+            _context.MovieLists.Update(movieList);
             await _context.SaveChangesAsync();
-            return true;
-        }
-
-        public async Task<bool> UpdateIsVoted(MovieList ml)
-        {
-            MovieList movielist = ml;
-            movielist.IsVoted = true;
-            _context.MovieLists.Update(movielist);
-            await _context.SaveChangesAsync();
-            return true;
         }
     }
 }
