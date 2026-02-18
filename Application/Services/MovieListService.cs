@@ -1,4 +1,4 @@
-﻿using Application.DTOs.Response.Movie;
+﻿ using Application.DTOs.Response.Movie;
 using Application.Interfaces;
 using Application.Mappers;
 using Domain.Interface.Repositories;
@@ -81,8 +81,6 @@ namespace Application.Services
                 MovieId = movieId,
                 UserId = userId
             };
-
-
             await _movieListRepository.CreateMovieList(movieList);
             var result = MovieListMapper.EntityToResponse(movieList, user.Value.Name);
 

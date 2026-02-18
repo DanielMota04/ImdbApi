@@ -58,7 +58,6 @@ namespace Infrastructure.Repositories
             return await _context.MovieLists.AnyAsync(ml => ml.UserId == userId);
         }
 
-
         public async void RemoveMovieFromList(MovieList movieList)
         {
             _context.MovieLists.Remove(movieList);

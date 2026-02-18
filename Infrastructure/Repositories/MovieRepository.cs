@@ -16,6 +16,7 @@ namespace Infrastructure.Repositories
         {
             _context = context;
         }
+
         public async Task<PagedResult<Movie>> GetAllMovies(PaginationParams paginationParams, string? title, string? director, string? genre, string? actor, MovieOrderBy order)
         {
             var query = _context.Movies.AsQueryable();
@@ -84,7 +85,6 @@ namespace Infrastructure.Repositories
         {
             return await _context.Movies.AnyAsync(m => m.Title == title);
         }
-
 
         public async void UpdateRating(Movie movie)
         {

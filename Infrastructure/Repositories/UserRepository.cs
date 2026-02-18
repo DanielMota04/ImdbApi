@@ -1,5 +1,4 @@
-﻿using Application.DTOs.Response.User;
-using Domain.Enums;
+﻿using Domain.Enums;
 using Domain.Interface.Repositories;
 using Domain.Models;
 using Domain.Models.Pagination;
@@ -46,6 +45,7 @@ namespace Infrastructure.Repositories
             var user = await _context.Users.FindAsync(id);
             return user;
         }
+        
         public async Task<User> DeactivateUser(User user)
         {
             _context.Users.Update(user);
@@ -53,6 +53,7 @@ namespace Infrastructure.Repositories
 
             return user;
         }
+        
         public async Task<User> CreateUser(User user)
         {
             _context.Users.Add(user);
@@ -60,6 +61,7 @@ namespace Infrastructure.Repositories
 
             return user;
         }
+        
         public async Task<User> UpdateUser(User user)
         {
             _context.Users.Update(user);
@@ -67,10 +69,12 @@ namespace Infrastructure.Repositories
 
             return user;
         }
+        
         public async Task<bool> UserExistsByEmail(string email)
         {
             return await _context.Users.AnyAsync(u => u.Email == email);
         }
+
         public async Task<User?> FindUserByEmail(string email)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);

@@ -85,13 +85,9 @@ namespace Application.Services
             VoteValidator validator = new VoteValidator();
 
             var movie = await _movieRepository.FindMovieById(vote.MovieId);
-
-            if (movie is null)
-                return Result.Fail(new NotFoundError("Movie not found in your list."));
-
             var movieList = await _movieListRepository.FindMovieInListByMovieIdAndUserId(vote.MovieId, userId);
 
-            if (movieList is null)
+            if (movie is null || movieList is null)
                 return Result.Fail(new NotFoundError("Movie not found in your list."));
 
             if (movieList.IsVoted)

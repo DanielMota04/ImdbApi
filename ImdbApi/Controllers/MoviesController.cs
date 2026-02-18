@@ -1,9 +1,7 @@
 ﻿using Api.Extensions;
 using Application.DTOs.Request.Movie;
-using Application.DTOs.Response.Movie;
 using Application.Interfaces;
 using Domain.Enums;
-using Domain.Models;
 using Domain.Models.Pagination;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -54,7 +52,6 @@ namespace Api.Controllers
             return NoContent();
         }
 
-
         [Authorize]
         [HttpPost("{id}/addToList")]
         public async Task<IActionResult> AddMovieToList(int id)
@@ -82,7 +79,6 @@ namespace Api.Controllers
             return HandleResult(result);
         }
 
-
         [Authorize]
         [HttpPut("vote")]
         public async Task<IActionResult> Vote(VoteMovieRequestDTO dto)
@@ -91,6 +87,5 @@ namespace Api.Controllers
             var value = await _service.Vote(dto, userId);
             return HandleResult(value);
         }
-
     }
 }

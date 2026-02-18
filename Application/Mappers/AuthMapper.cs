@@ -31,6 +31,5 @@ namespace Application.Mappers
 
             return dto;
         }
-
     }
 }
