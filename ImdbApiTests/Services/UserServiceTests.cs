@@ -42,7 +42,7 @@ namespace ImdbApiTests.Services
             var userResponse = new UserResponse { Id = userId, Name = "username", Role = Domain.Enums.Roles.User };
 
 
-            _userRepositoryMock.GetUserByIdAsync(userId).Returns((User)null);
+            _userRepositoryMock.GetUserByIdAsync(userId).Returns(null as User);
 
             var result = await _userService.GetUserById(userId);
 
@@ -55,7 +55,7 @@ namespace ImdbApiTests.Services
         public async Task DeactivateUser_WhenUserDoesNotExists_ReturnFail()
         {
             int userId = 99;
-            _userRepositoryMock.GetUserByIdAsync(userId).Returns((User)null);
+            _userRepositoryMock.GetUserByIdAsync(userId).Returns(null as User);
 
             var result = await _userService.DeactivateUser(userId);
 
@@ -96,7 +96,7 @@ namespace ImdbApiTests.Services
         public async Task DeactivateMe_WhenUserDoesNotExists_ReturnFail()
         {
             int userId = 99;
-            _userRepositoryMock.GetUserByIdAsync(userId).Returns((User)null);
+            _userRepositoryMock.GetUserByIdAsync(userId).Returns(null as User);
 
             var result = await _userService.DeactivateMe(userId);
 
@@ -130,11 +130,10 @@ namespace ImdbApiTests.Services
         public async Task UpdateUser_WhenUserDoesNotExists_ReturnFail()
         {
             int userId = 99;
-            int loggedUserId = 1;
 
             var dto = new UpdateUserRequestDTO { Name = "New Name" };
 
-            _userRepositoryMock.GetUserByIdAsync(userId).Returns((User)null);
+            _userRepositoryMock.GetUserByIdAsync(userId).Returns(null as User);
 
             var result = await _userService.UpdateUser(userId, dto, 1);
 
