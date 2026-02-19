@@ -17,7 +17,13 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<PagedResult<Movie>> GetAllMovies(PaginationParams paginationParams, string? title, string? director, string? genre, string? actor, MovieOrderBy order)
+        public async Task<PagedResult<Movie>> GetAllMovies(PaginationParams paginationParams,
+            string? title,
+            string? director,
+            string? genre, 
+            string? actor,
+            MovieOrderBy order,
+            CancellationToken cancellationToken)
         {
             var query = _context.Movies.AsQueryable();
 
@@ -56,14 +62,14 @@ namespace Infrastructure.Repositories
             };
         }
         
-        public async Task<List<Movie>> GetMoviesByIds(List<int> movieIds)
+        public async Task<List<Movie>> GetMoviesByIds(List<int> movieIds, CancellationToken cancellationToken)
         {
             return await _context.Movies
                 .Where(m => movieIds.Contains(m.Id))
                 .ToListAsync();
         }
 
-        public async Task<Movie> CreateMovie(Movie movie)
+        public async Task<Movie> CreateMovie(Movie movie, CancellationToken cancellationToken)
         {
             _context.Movies.Add(movie);
             await _context.SaveChangesAsync();
@@ -76,12 +82,12 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<Movie?> FindMovieById(int id)
+        public async Task<Movie?> FindMovieById(int id, CancellationToken cancellationToken)
         {
             return await _context.Movies.FindAsync(id);
         }
 
-        public async Task<bool> FindMovieByTitle(string title)
+        public async Task<bool> FindMovieByTitle(string title, CancellationToken cancellationToken)
         {
             return await _context.Movies.AnyAsync(m => m.Title == title);
         }

@@ -31,9 +31,9 @@ namespace Api.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetMovie(int id)
+        public async Task<IActionResult> GetMovie(int id, CancellationToken cancellationToken)
         {
-            var movie = await _service.GetMovieById(id);
+            var movie = await _service.GetMovieById(id, cancellationToken);
             return HandleResult(movie);
         }
 

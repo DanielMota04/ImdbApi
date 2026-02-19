@@ -6,12 +6,18 @@ namespace Domain.Interface.Repositories
 {
     public interface IMovieRepository
     {
-        public Task<PagedResult<Movie>> GetAllMovies(PaginationParams paginationParams, string? title, string? director, string? genre, string? actor, MovieOrderBy order);
-        public Task<List<Movie>> GetMoviesByIds(List<int> movieIds);
-        public Task<Movie> CreateMovie(Movie m);
-        public void DeleteMovie(Movie m);
-        public void UpdateRating(Movie m);
-        public Task<Movie?> FindMovieById(int id);
-        public Task<bool> FindMovieByTitle(string title);
+        public Task<PagedResult<Movie>> GetAllMovies(PaginationParams paginationParams, 
+            string? title, 
+            string? director, 
+            string? genre, 
+            string? actor, 
+            MovieOrderBy order, 
+            CancellationToken cancellationToken = default);
+        public Task<List<Movie>> GetMoviesByIds(List<int> movieIds, CancellationToken cancellationToken = default);
+        public Task<Movie> CreateMovie(Movie movie, CancellationToken cancellationToken = default);
+        public void DeleteMovie(Movie movie);
+        public void UpdateRating(Movie movie);
+        public Task<Movie?> FindMovieById(int id, CancellationToken cancellationToken = default);
+        public Task<bool> FindMovieByTitle(string title, CancellationToken cancellationToken = default);
     }
 }

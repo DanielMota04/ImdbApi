@@ -16,7 +16,7 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<PagedResult<User>> GetAllUsersAsync(PaginationParams paginationParams, Roles? role)
+        public async Task<PagedResult<User>> GetAllUsersAsync(PaginationParams paginationParams, Roles? role, CancellationToken cancellationToken)
         {
             var query = _context.Users.AsQueryable().Where(u => u.IsActive);
 
@@ -40,13 +40,13 @@ namespace Infrastructure.Repositories
             };
         }
 
-        public async Task<User?> GetUserByIdAsync(int id)
+        public async Task<User?> GetUserByIdAsync(int id, CancellationToken cancellationToken)
         {
             var user = await _context.Users.FindAsync(id);
             return user;
         }
         
-        public async Task<User> DeactivateUser(User user)
+        public async Task<User> DeactivateUser(User user, CancellationToken cancellationToken)
         {
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
@@ -54,7 +54,7 @@ namespace Infrastructure.Repositories
             return user;
         }
         
-        public async Task<User> CreateUser(User user)
+        public async Task<User> CreateUser(User user, CancellationToken cancellationToken)
         {
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
@@ -62,7 +62,7 @@ namespace Infrastructure.Repositories
             return user;
         }
         
-        public async Task<User> UpdateUser(User user)
+        public async Task<User> UpdateUser(User user, CancellationToken cancellationToken)
         {
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
@@ -70,29 +70,29 @@ namespace Infrastructure.Repositories
             return user;
         }
         
-        public async Task<bool> UserExistsByEmail(string email)
+        public async Task<bool> UserExistsByEmail(string email, CancellationToken cancellationToken)
         {
             return await _context.Users.AnyAsync(u => u.Email == email);
         }
 
-        public async Task<User?> FindUserByEmail(string email)
+        public async Task<User?> FindUserByEmail(string email, CancellationToken cancellationToken)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
             return user;
         }
 
-        public async Task SaveRefreshToken(RefreshToken token)
+        public async Task SaveRefreshToken(RefreshToken token, CancellationToken cancellationToken)
         {
             _context.RefreshTokens.Add(token);
             await _context.SaveChangesAsync();
         }
 
-        public Task<RefreshToken?> GetRefreshToken(string token)
+        public Task<RefreshToken?> GetRefreshToken(string token, CancellationToken cancellationToken)
         {
             return _context.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == token);
         }
 
-        public Task DeleteRefreshToken(RefreshToken token)
+        public Task DeleteRefreshToken(RefreshToken token, CancellationToken cancellationToken)
         {
             _context.RefreshTokens.Remove(token);
             return _context.SaveChangesAsync();

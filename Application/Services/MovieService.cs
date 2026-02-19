@@ -23,7 +23,7 @@ namespace Application.Services
             _movieListRepository = movieListRepository;
         }
 
-        public async Task<Result<MovieDetailsResponseDTO>> CreateMovie(CreateMovieRequestDTO dto)
+        public async Task<Result<MovieDetailsResponseDTO>> CreateMovie(CreateMovieRequestDTO dto, CancellationToken cancellationToken = default)
         {
             CreateMovieValidator validator = new();
             var title = dto.Title.Trim().Normalize();
@@ -32,21 +32,27 @@ namespace Application.Services
 
             var actors = dto.Actors.Select(a => a.Trim().Normalize()).ToList();
 
-            var movieExistsByTitle = await _movieRepository.FindMovieByTitle(title.ToLower());
+            var movieExistsByTitle = await _movieRepository.FindMovieByTitle(title.ToLower(), cancellationToken);
             if (movieExistsByTitle)
                 return Result.Fail(new ConflictError("Movie name already exists."));
 
             validator.ValidateAndThrow(dto);
 
             var movie = MovieMapper.CreateToEntity(title, genre, actors, director);
-            await _movieRepository.CreateMovie(movie);
+            await _movieRepository.CreateMovie(movie, cancellationToken);
 
             return Result.Ok(MovieMapper.EntityToDetails(movie));
         }
 
-        public async Task<Result<PagedResult<MovieResponseDTO>>> GetAllMovies(PaginationParams paginationParams, string? title, string? director, string? genre, string? actor, MovieOrderBy order)
+        public async Task<Result<PagedResult<MovieResponseDTO>>> GetAllMovies(PaginationParams paginationParams, 
+            string? title, 
+            string? director, 
+            string? genre, 
+            string? actor, 
+            MovieOrderBy order,
+            CancellationToken cancellationToken = default)
         {
-            var movies = await _movieRepository.GetAllMovies(paginationParams, title, director, genre, actor, order);
+            var movies = await _movieRepository.GetAllMovies(paginationParams, title, director, genre, actor, order, cancellationToken);
 
             var mmappedMovies = movies.Items?.Select(m => MovieMapper.EntityToResponse(m)).ToList() ?? new List<MovieResponseDTO>();
 
@@ -59,16 +65,16 @@ namespace Application.Services
             });
         }
 
-        public async Task<Result<MovieDetailsResponseDTO>> GetMovieById(int id)
+        public async Task<Result<MovieDetailsResponseDTO>> GetMovieById(int id, CancellationToken cancellationToken = default)
         {
-            var movie = await _movieRepository.FindMovieById(id);
+            var movie = await _movieRepository.FindMovieById(id, cancellationToken);
             if (movie == null)
                 return Result.Fail(new NotFoundError($"Movie not found with id {id}."));
             
             return Result.Ok(MovieMapper.EntityToDetails(movie));
         }
 
-        public async Task<Result<bool>> DeleteMovie(int id)
+        public async Task<Result<bool>> DeleteMovie(int id, CancellationToken cancellationToken = default)
         {
             var movie = await _movieRepository.FindMovieById(id);
 
@@ -80,12 +86,12 @@ namespace Application.Services
             return Result.Ok(true);
         }
 
-        public async Task<Result<double>> Vote(VoteMovieRequestDTO vote, int userId)
+        public async Task<Result<double>> Vote(VoteMovieRequestDTO vote, int userId, CancellationToken cancellationToken = default)
         {
             VoteValidator validator = new VoteValidator();
 
-            var movie = await _movieRepository.FindMovieById(vote.MovieId);
-            var movieList = await _movieListRepository.FindMovieInListByMovieIdAndUserId(vote.MovieId, userId);
+            var movie = await _movieRepository.FindMovieById(vote.MovieId, cancellationToken);
+            var movieList = await _movieListRepository.FindMovieInListByMovieIdAndUserId(vote.MovieId, userId, cancellationToken);
 
             if (movie is null || movieList is null)
                 return Result.Fail(new NotFoundError("Movie not found in your list."));

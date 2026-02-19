@@ -24,9 +24,9 @@ namespace Application.Services
             _movieRepository = movieRepository;
         }
         
-        public async Task<Result<PagedResult<MovieDetailsResponseDTO>>> GetMovieList(PaginationParams paginationParams, int userId)
+        public async Task<Result<PagedResult<MovieDetailsResponseDTO>>> GetMovieList(PaginationParams paginationParams, int userId, CancellationToken cancellationToken = default)
         {
-            var pagedList = await _movieListRepository.ListMoviesByUserId(paginationParams, userId);
+            var pagedList = await _movieListRepository.GetAllMoviesInList(paginationParams, userId, cancellationToken);
 
             if (pagedList.Items == null || !pagedList.Items.Any())
             {
@@ -64,11 +64,11 @@ namespace Application.Services
             return Result.Ok(result);
         }
 
-        public async Task<Result<MovieListResponseDTO>> AddMovieToList(int movieId, int userId)
+        public async Task<Result<MovieListResponseDTO>> AddMovieToList(int movieId, int userId, CancellationToken cancellationToken = default)
         {
-            var movie = await _movieService.GetMovieById(movieId);
+            var movie = await _movieService.GetMovieById(movieId, cancellationToken);
 
-            var user = await _userService.GetUserById(userId);
+            var user = await _userService.GetUserById(userId, cancellationToken);
 
             if (movie.IsFailed)
                 return Result.Fail(new NotFoundError("Movie not found"));
@@ -87,9 +87,9 @@ namespace Application.Services
             return Result.Ok(result);
         }
 
-        public async Task<Result<bool>> RemoveMovieFromList(int id, int userId)
+        public async Task<Result<bool>> RemoveMovieFromList(int id, int userId, CancellationToken cancellationToken = default)
         {
-            var movieList = await _movieListRepository.FindMovieListById(id);
+            var movieList = await _movieListRepository.FindMovieListById(id, cancellationToken);
 
             if (movieList == null)
                 return Result.Fail(new NotFoundError("Movie List not found"));

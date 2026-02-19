@@ -15,7 +15,7 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<PagedResult<MovieList>> ListMoviesByUserId(PaginationParams paginationParams, int userId)
+        public async Task<PagedResult<MovieList>> GetAllMoviesInList(PaginationParams paginationParams, int userId, CancellationToken cancellationToken)
         {
             var query = _context.MovieLists.AsQueryable().Where(ml => ml.UserId == userId);
 
@@ -36,24 +36,24 @@ namespace Infrastructure.Repositories
             };
         }
 
-        public async Task<MovieList> CreateMovieList(MovieList movieList)
+        public async Task<MovieList> CreateMovieList(MovieList movieList, CancellationToken cancellationToken)
         {
             _context.MovieLists.Add(movieList);
             await _context.SaveChangesAsync();
             return movieList;
         }
 
-        public async Task<MovieList?> FindMovieInListByMovieIdAndUserId(int movieId, int userId)
+        public async Task<MovieList?> FindMovieInListByMovieIdAndUserId(int movieId, int userId, CancellationToken cancellationToken)
         {
             return await _context.MovieLists.FirstOrDefaultAsync(ml => ml.UserId == userId && ml.MovieId == movieId);
         }
 
-        public async Task<MovieList?> FindMovieListById(int id)
+        public async Task<MovieList?> FindMovieListById(int id, CancellationToken cancellationToken)
         {
             return await _context.MovieLists.FirstOrDefaultAsync(ml => ml.MovieListId == id);
         }
 
-        public async Task<bool> IsMovieOnUserList(int userId)
+        public async Task<bool> IsMovieOnUserList(int userId, CancellationToken cancellationToken)
         {
             return await _context.MovieLists.AnyAsync(ml => ml.UserId == userId);
         }

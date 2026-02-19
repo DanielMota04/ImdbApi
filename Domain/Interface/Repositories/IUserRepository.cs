@@ -6,15 +6,15 @@ namespace Domain.Interface.Repositories
 {
     public interface IUserRepository
     {
-        public Task<PagedResult<User>> GetAllUsersAsync(PaginationParams paginationParams, Roles? role);
-        public Task<User?> GetUserByIdAsync(int id);
-        public Task<User> CreateUser(User u);
-        public Task<User> DeactivateUser(User u);
-        public Task<User> UpdateUser(User u);
-        public Task<bool> UserExistsByEmail(string email);
-        public Task<User?> FindUserByEmail(string email);
-        public Task SaveRefreshToken(RefreshToken token);
-        public Task<RefreshToken?> GetRefreshToken(string token);
-        public Task DeleteRefreshToken(RefreshToken token);
+        public Task<PagedResult<User>> GetAllUsersAsync(PaginationParams paginationParams, Roles? role, CancellationToken cancellationToken = default);
+        public Task<User?> GetUserByIdAsync(int id, CancellationToken cancellationToken = default);
+        public Task<User> CreateUser(User user, CancellationToken cancellationToken = default);
+        public Task<User> DeactivateUser(User user, CancellationToken cancellationToken = default);
+        public Task<User> UpdateUser(User user, CancellationToken cancellationToken = default);
+        public Task<bool> UserExistsByEmail(string email, CancellationToken cancellationToken = default);
+        public Task<User?> FindUserByEmail(string email, CancellationToken cancellationToken = default);
+        public Task SaveRefreshToken(RefreshToken token, CancellationToken cancellationToken = default);
+        public Task<RefreshToken?> GetRefreshToken(string token, CancellationToken cancellationToken = default);
+        public Task DeleteRefreshToken(RefreshToken token, CancellationToken cancellationToken = default);
     }
 }

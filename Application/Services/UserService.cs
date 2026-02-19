@@ -18,9 +18,9 @@ namespace Application.Services
             _userRepository = userRepository;
         }
 
-        public async Task<Result<PagedResult<UserResponse>>> GetAllUsers(PaginationParams paginationParams, Roles? role)
+        public async Task<Result<PagedResult<UserResponse>>> GetAllUsers(PaginationParams paginationParams, Roles? role, CancellationToken cancellationToken = default)
         {
-            var pagedUsers = await _userRepository.GetAllUsersAsync(paginationParams, role);
+            var pagedUsers = await _userRepository.GetAllUsersAsync(paginationParams, role, cancellationToken);
 
             var mappedItems = pagedUsers.Items?.Select(u => UserMapper.ToUserResponse(u)).ToList() ?? new List<UserResponse>();
 
@@ -35,42 +35,42 @@ namespace Application.Services
             return Result.Ok(result);
         }
 
-        public async Task<Result<UserResponse>> GetUserById(int id)
+        public async Task<Result<UserResponse>> GetUserById(int id, CancellationToken cancellationToken = default)
         {
-            var user = await _userRepository.GetUserByIdAsync(id);
+            var user = await _userRepository.GetUserByIdAsync(id, cancellationToken);
             if (user == null)
                 return Result.Fail(new NotFoundError($"User not found by id {id}."));
 
             return Result.Ok(UserMapper.ToUserResponse(user));
         }
 
-        public async Task<Result<bool>> DeactivateUser(int id)
+        public async Task<Result<bool>> DeactivateUser(int id, CancellationToken cancellationToken = default)
         {
-            var user = await _userRepository.GetUserByIdAsync(id);
+            var user = await _userRepository.GetUserByIdAsync(id, cancellationToken);
             if (user == null)
                 return Result.Fail(new NotFoundError($"User not found by id {id}."));
             
             user.IsActive = false;
-            await _userRepository.DeactivateUser(user);
+            await _userRepository.DeactivateUser(user, cancellationToken);
 
             return Result.Ok(true);
         }
 
-        public async Task<Result<bool>> DeactivateMe(int userId)
+        public async Task<Result<bool>> DeactivateMe(int userId, CancellationToken cancellationToken = default)
         {
-            var user = await _userRepository.GetUserByIdAsync(userId);
+            var user = await _userRepository.GetUserByIdAsync(userId, cancellationToken);
             if (user == null)
                 return Result.Fail(new NotFoundError($"User not found by id {userId}."));
 
             user.IsActive = false;
-            await _userRepository.DeactivateUser(user);
+            await _userRepository.DeactivateUser(user, cancellationToken);
 
             return Result.Ok(true);
         }
 
-        public async Task<Result<UserResponse>> UpdateUser(int id, UpdateUserRequestDTO dto, int loggedUser)
+        public async Task<Result<UserResponse>> UpdateUser(int id, UpdateUserRequestDTO dto, int loggedUser, CancellationToken cancellationToken = default)
         {
-            var user = await _userRepository.GetUserByIdAsync(id);
+            var user = await _userRepository.GetUserByIdAsync(id, cancellationToken);
             if (user == null)
                 return Result.Fail(new NotFoundError($"User not found by id {id}."));
 
@@ -83,7 +83,7 @@ namespace Application.Services
             if (!string.IsNullOrWhiteSpace(dto.Password))
                 user.Password = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
-            await _userRepository.UpdateUser(user);
+            await _userRepository.UpdateUser(user, cancellationToken);
 
             return Result.Ok(UserMapper.ToUserResponse(user));
 

@@ -21,13 +21,13 @@ namespace Application.Services
             _userRepository = userRepository;
         }
 
-        public async Task<Result<AuthResponseDTO>> RegisterAsync(AuthRegisterRequestDTO dto)
+        public async Task<Result<AuthResponseDTO>> RegisterAsync(AuthRegisterRequestDTO dto, CancellationToken cancellationToken = default)
         {
             RegisterValidator validator = new();
 
             string normalizedEmail = dto.Email.Trim().ToLower();
 
-            bool emailAreadyExists = await _userRepository.UserExistsByEmail(normalizedEmail);
+            bool emailAreadyExists = await _userRepository.UserExistsByEmail(normalizedEmail, cancellationToken);
             if (emailAreadyExists)
                 return Result.Fail(new ConflictError("Email already exists"));
 
@@ -36,16 +36,16 @@ namespace Application.Services
 
             validator.ValidateAndThrow(userEntity);
 
-            await _userRepository.CreateUser(userEntity);
+            await _userRepository.CreateUser(userEntity, cancellationToken);
 
             return Result.Ok(AuthMapper.EntityToResponse(userEntity));
         }
 
-        public async Task<Result<AuthLoginResponseDTO>> LoginAsync(AuthLoginRequestDTO dto)
+        public async Task<Result<AuthLoginResponseDTO>> LoginAsync(AuthLoginRequestDTO dto, CancellationToken cancellationToken = default)
         {
             var normalizedEmail = dto.Email.Trim().ToLower();
 
-            var user = await _userRepository.FindUserByEmail(normalizedEmail);
+            var user = await _userRepository.FindUserByEmail(normalizedEmail, cancellationToken);
 
             if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.Password))
                 return Result.Fail(new UnauthorizedError("Invalid credentials."));
@@ -60,7 +60,7 @@ namespace Application.Services
                 Expires = DateTime.UtcNow.AddDays(7),
                 UserId = user.Id
             };
-            await _userRepository.SaveRefreshToken(refreshTokenEntity);
+            await _userRepository.SaveRefreshToken(refreshTokenEntity, cancellationToken);
 
             return Result.Ok(new AuthLoginResponseDTO
             {
@@ -71,21 +71,21 @@ namespace Application.Services
             });
         }
 
-        public async Task<Result<AuthLoginResponseDTO>> RefreshTokenAsync(string token)
+        public async Task<Result<AuthLoginResponseDTO>> RefreshTokenAsync(string token, CancellationToken cancellationToken = default)
         {
-            var savedToken = await _userRepository.GetRefreshToken(token);
+            var savedToken = await _userRepository.GetRefreshToken(token, cancellationToken);
 
             if (savedToken == null || savedToken.IsExpired)
                 return Result.Fail(new UnauthorizedError("Refresh token invalid or expired."));
 
-            var user = await _userRepository.GetUserByIdAsync(savedToken.UserId);
+            var user = await _userRepository.GetUserByIdAsync(savedToken.UserId, cancellationToken);
 
-            await _userRepository.DeleteRefreshToken(savedToken);
+            await _userRepository.DeleteRefreshToken(savedToken, cancellationToken);
 
-            return await GenerateAuthResponse(user!);
+            return await GenerateAuthResponse(user!, cancellationToken);
         }
 
-        private async Task<AuthLoginResponseDTO> GenerateAuthResponse(User user)
+        private async Task<AuthLoginResponseDTO> GenerateAuthResponse(User user, CancellationToken cancellationToken = default)
         {
             var accessToken = _jwtService.GenerateToken(user).AccessToken;
             var refreshTokenValue = _jwtService.GenerateRefreshToken();
@@ -97,7 +97,7 @@ namespace Application.Services
                 UserId = user.Id
             };
 
-            await _userRepository.SaveRefreshToken(refreshTokenEntity);
+            await _userRepository.SaveRefreshToken(refreshTokenEntity, cancellationToken);
 
             return new AuthLoginResponseDTO
             {

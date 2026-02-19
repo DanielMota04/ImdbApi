@@ -33,7 +33,8 @@ namespace ImdbApiTests.Services
         {
             int movieId = 99;
             int userId = 10;
-            _movieServiceMock.GetMovieById(movieId).Returns(Result.Fail<MovieDetailsResponseDTO>("Movie not found"));
+            CancellationToken cancellationToken = default;
+            _movieServiceMock.GetMovieById(movieId, cancellationToken).Returns(Result.Fail<MovieDetailsResponseDTO>("Movie not found"));
 
             var result = await _movieListService.AddMovieToList(movieId, userId);
 
@@ -50,7 +51,8 @@ namespace ImdbApiTests.Services
         {
             int movieId = 1;
             int userId = 99;
-            _movieServiceMock.GetMovieById(movieId).Returns(movie);
+            CancellationToken cancellationToken = default;
+            _movieServiceMock.GetMovieById(movieId, cancellationToken).Returns(movie);
             _userServiceMock.GetUserById(userId).Returns(Result.Fail<UserResponse>("User not found"));
 
             var result = await _movieListService.AddMovieToList(movieId, userId);
@@ -67,7 +69,9 @@ namespace ImdbApiTests.Services
         {
             int movieId = 1;
             int userId = 10;
-            _movieServiceMock.GetMovieById(movieId).Returns(movie);
+            CancellationToken cancellationToken = default;
+
+            _movieServiceMock.GetMovieById(movieId, cancellationToken).Returns(movie);
             _userServiceMock.GetUserById(userId).Returns(user);
 
             var result = await _movieListService.AddMovieToList(movieId, userId);
